@@ -74,8 +74,8 @@ sub fade
 	{
 		$self->{'_dmx_step'}[$channel-1]=int($time_sec*$self->{'ticks_per_sec'}+0.5)+1;
 		$self->{'_dmx_diff'}[$channel-1]=($value-$current_value)/$self->{'_dmx_step'}[$channel-1];
-print "S:".$channel."=".$self->{'_dmx_step'}[$channel-1]."\n";
-print "D:".$channel."=".$self->{'_dmx_diff'}[$channel-1]."\n\n";
+		print "S:".$channel."=".$self->{'_dmx_step'}[$channel-1]."\n";
+		print "D:".$channel."=".$self->{'_dmx_diff'}[$channel-1]."\n\n";
 	}
 }
 

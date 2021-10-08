@@ -46,7 +46,7 @@ sub worker_thread
 	my($i,$v);
 
 	# send blackout 
-	$data="Art-Net\x00\x00\x50\000\016\x00\x01".chr($$super->{'universe'})."\x00".chr(255).chr(1).$$super->{'_dmx_channels'};
+	$data="Art-Net\x00\x00\x50\000\016\x00\x01".chr($$super->{'universe'})."\x00".chr(2).chr(0).$$super->{'_dmx_channels'};
 	$$super->{'_socket'}->send($data);
 
 	while(1)
@@ -57,7 +57,7 @@ sub worker_thread
 		{
 			if($$super->{'_dmx_step'}[$i]>0)
 			{
-print "$i: ".$$super->{'_dmx_step'}[$i]."\n";
+				print "$i: ".$$super->{'_dmx_step'}[$i]."\n";
 				$v=int(vec($$super->{'_dmx_channels'},$i,8))+int($$super->{'_dmx_diff'}[$i]);
 				if($v<0)
 				{
@@ -71,7 +71,7 @@ print "$i: ".$$super->{'_dmx_step'}[$i]."\n";
 				$$super->{'_dmx_step'}[$i]--;
 			}
 		}	
-		$data="Art-Net\x00\x00\x50\000\016\x00\x01".chr($$super->{'universe'})."\x00".chr(255).chr(1).$$super->{'_dmx_channels'};
+		$data="Art-Net\x00\x00\x50\000\016\x00\x01".chr($$super->{'universe'})."\x00".chr(2).chr(0).$$super->{'_dmx_channels'};
 		$$super->{'_socket'}->send($data);
 
 		$t1 = [gettimeofday];
