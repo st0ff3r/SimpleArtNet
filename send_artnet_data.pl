@@ -1,9 +1,11 @@
 #! /usr/bin/perl -w
 
-use Artnet;
 use IO::Socket::INET;
 use Time::HiRes qw(usleep gettimeofday tv_interval);
 use Data::Dumper;
+
+use lib qw ( ./ );
+use Artnet;
 
 use constant PEER_ADDR => '192.168.6.18';
 #use constant PEER_ADDR => '127.0.0.1';
@@ -35,7 +37,7 @@ while (1) {
 			$i++;
 		}
 		$a->send_artnet();
-		usleep(20_000);
+		usleep(SPEED);
 	}
 	close(FH);
 }

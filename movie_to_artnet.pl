@@ -15,7 +15,7 @@ my $temp_dir = tempdir( CLEANUP => 1 );
 
 # convert movie to images
 #if (system("ffmpeg -i " . $movie_file . " -vf scale=" . NUM_PIXELS . ":-1 " . $temp_dir . "/%05d.png") != 0) {
-if (system("ffmpeg -loglevel -8 -i " . $movie_file . " -vf scale=" . NUM_PIXELS . ":-1 " . $temp_dir . "/%05d.png") != 0) {
+if (system("ffmpeg -loglevel -8 -i " . $movie_file . " -vf scale=" . NUM_PIXELS . ":-1:flags=neighbor " . $temp_dir . "/%05d.png") != 0) {
 	die "system failed: $?";
 }
 
