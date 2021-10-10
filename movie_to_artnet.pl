@@ -4,9 +4,12 @@ use File::Temp qw( tempfile tempdir );
 use File::Copy;
 use Image::Magick;
 use Image::Size;
+use Config::Simple;
 use Data::Dumper;
 
-use constant NUM_PIXELS => 30;
+use constant ARTNET_CONF => 'artnet.conf';
+
+my $config = new Config::Simple(ARTNET_CONF);
 
 my $movie_file = $ARGV[0];
 my $artnet_data_file = $ARGV[1] || "artnet.data";
@@ -14,8 +17,7 @@ my $artnet_data_file = $ARGV[1] || "artnet.data";
 my $temp_dir = tempdir( CLEANUP => 1 );
 
 # convert movie to images
-#if (system("ffmpeg -i " . $movie_file . " -vf scale=" . NUM_PIXELS . ":-1 " . $temp_dir . "/%05d.png") != 0) {
-if (system("ffmpeg -loglevel -8 -i " . $movie_file . " -vf scale=" . NUM_PIXELS . ":-1:flags=neighbor " . $temp_dir . "/%05d.png") != 0) {
+if (system("ffmpeg -loglevel -8 -i " . $movie_file . " -vf scale=" . $config->param('num_pixels') . ":-1:flags=neighbor " . "-filter:v fps=25 " . $temp_dir . "/%05d.png") != 0) {
 	die "system failed: $?";
 }
 
