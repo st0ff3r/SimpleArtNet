@@ -60,13 +60,13 @@ RUN mkdir -p /led
 #RUN PERL_MM_USE_DEFAULT=1 cpan install Net::MQTT::Simple
 
 COPY ./docker-entrypoint.sh /docker-entrypoint.sh
-COPY ./artnet.conf /led/
+COPY ./artnet.conf /led_controller/
 
-COPY ./Artnet.pm /led/
-COPY ./send_artnet_data.pl /led/
-COPY ./movie_to_artnet.pl /led/
-COPY ./test.mov /led/
-COPY ./artnet.data /led/
+COPY ./Artnet.pm /led_controller/
+COPY ./send_artnet_data.pl /led_controller/
+COPY ./movie_to_artnet.pl /led_controller/
+COPY ./test.mov /led_controller/
+COPY ./artnet.data /led_controller/
 
 CMD /docker-entrypoint.sh
 
