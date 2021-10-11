@@ -11,7 +11,7 @@ use Artnet;
 use constant ARTNET_CONF => 'artnet.conf';
 
 my $config = new Config::Simple(ARTNET_CONF);
-my $artnet_data_file = $ARGV[0];
+my $artnet_data_file = $ARGV[0] || "artnet.data";
 
 # network connection
 my $a = new Artnet(
