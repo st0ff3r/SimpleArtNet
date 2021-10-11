@@ -55,7 +55,7 @@ RUN apt-get update && apt-get install -y \
 
 USER root
 
-RUN mkdir -p /led
+RUN mkdir -p /led_controller
 
 #RUN PERL_MM_USE_DEFAULT=1 cpan install Net::MQTT::Simple
 
