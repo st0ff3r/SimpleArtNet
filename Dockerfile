@@ -50,6 +50,7 @@ RUN apt-get update && apt-get install -y \
 	software-properties-common \
 	libimage-magick-perl \
 	libimage-size-perl \
+	libipc-sharelite-perl \
 	ffmpeg \
 	imagemagick
 
@@ -65,6 +66,7 @@ COPY ./artnet.conf /led_controller/
 COPY ./Artnet.pm /led_controller/
 COPY ./send_artnet_data.pl /led_controller/
 COPY ./movie_to_artnet.pl /led_controller/
+COPY ./led_control.pl /led_controller/
 COPY ./test.mov /led_controller/
 COPY ./artnet.data /led_controller/
 

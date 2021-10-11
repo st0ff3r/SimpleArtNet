@@ -3,6 +3,7 @@
 use IO::Socket::INET;
 use Time::HiRes qw(usleep gettimeofday tv_interval);
 use Config::Simple;
+use IPC::ShareLite;
 use Data::Dumper;
 
 use lib qw ( ./ );
@@ -12,6 +13,16 @@ use constant ARTNET_CONF => 'artnet.conf';
 
 my $config = new Config::Simple(ARTNET_CONF);
 my $artnet_data_file = $ARGV[0] || "artnet.data";
+
+my $intensity = 1.0;
+
+my $share = IPC::ShareLite->new(
+	-key		=> 6454,
+	-create		=> 'yes',
+	-destroy	=> 'yes'
+) or die $!;
+
+$SIG{HUP} = sub { $intensity = $share->fetch };
 
 # network connection
 my $a = new Artnet(
@@ -28,9 +39,9 @@ while (1) {
 		while (($red, $green, $blue) = splice(@pixel_line, 0, 3)) {
 			$a->set_pixel(
 				pixel => $i,
-				red => hex($red) / 255,
-				green => hex($green) / 255,
-				blue => hex($blue) / 255,
+				red => $intensity * hex($red) / 255,
+				green => $intensity * hex($green) / 255,
+				blue => $intensity * hex($blue) / 255,
 			);
 			$i++;
 		}
