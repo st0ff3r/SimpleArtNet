@@ -58,7 +58,7 @@ USER root
 
 RUN mkdir -p /led_controller
 
-#RUN PERL_MM_USE_DEFAULT=1 cpan install Net::MQTT::Simple
+RUN PERL_MM_USE_DEFAULT=1 cpan install Proc::Killall
 
 COPY ./docker-entrypoint.sh /docker-entrypoint.sh
 COPY ./artnet.conf /led_controller/

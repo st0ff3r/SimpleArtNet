@@ -2,6 +2,7 @@
 
 use Config::Simple;
 use IPC::ShareLite;
+use Proc::Killall;
 use Data::Dumper;
 
 use constant ARTNET_CONF => 'artnet.conf';
@@ -9,7 +10,6 @@ use constant ARTNET_CONF => 'artnet.conf';
 my $config = new Config::Simple(ARTNET_CONF);
 
 my $intensity = $ARGV[0];
-my $pid = $ARGV[1] || die "need pid of send_artnet_data process\n";
 
 my $share = IPC::ShareLite->new(
 	-key		=> 6454,
@@ -18,4 +18,4 @@ my $share = IPC::ShareLite->new(
 ) or die $!;
 
 $share->store($intensity);
-kill('HUP', $pid);
+killall('HUP', 'send_artnet_data');
