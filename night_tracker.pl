@@ -38,21 +38,21 @@ while (1) {
 		warn "rising\n";
 		my $dur = new DateTime::Duration;
 		$dur = $dt - $rise_start;
-		set_intensity($dur->minutes * (1 / $dur_rise->minutes));
+		set_intensity(1 - ($dur->minutes * (1 / $dur_rise->minutes)));
 	}
 	elsif ($rise_end < $dt && $dt < $set_start) {
 		warn "up\n";
-		set_intensity(1.0);
+		set_intensity(0.0);
 	}
 	elsif ($set_start < $dt && $dt < $set_end) {
 		warn "setting\n";
 		my $dur = new DateTime::Duration;
 		$dur = $dt - $set_start;
-		set_intensity(1 - ($dur->minutes * (1 / $dur_set->minutes)));
+		set_intensity($dur->minutes * (1 / $dur_set->minutes));
 	}
 	elsif ($set_end < $dt && $dt < $rise_start) {
 		warn "down\n";
-		set_intensity(0.0);
+		set_intensity(1.0);
 	}
 	
 	sleep 60;
