@@ -9,6 +9,9 @@ up:
 down:
 	docker rm $$(docker stop $$(docker ps -a -q --filter ancestor=led_controller:latest --format="{{.ID}}"))
 
+logs:
+	docker logs -f led_controller
+
 sh:
 	docker exec -it led_controller /bin/bash
 
