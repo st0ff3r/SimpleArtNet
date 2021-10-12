@@ -9,13 +9,28 @@ use DateTime::Event::Sunrise;
 use DateTime::Duration;
 use IPC::ShareLite;
 use Proc::Killall;
+use IO::Async::Timer::Periodic;
+use IO::Async::Loop;
 use Data::Dumper;
 
 use constant ARTNET_CONF => 'artnet.conf';
 
 my $config = new Config::Simple(ARTNET_CONF);
 
-while (1) {
+my $loop = IO::Async::Loop->new;
+
+my $timer = IO::Async::Timer::Periodic->new(
+	interval => 1,
+	on_tick => \&do_calculation
+);
+
+$timer->start;
+ 
+$loop->add($timer);
+ 
+$loop->run;
+
+sub do_calculation {
 	my $sunrise_start = DateTime::Event::Sunrise->sunrise(longitude => 12.5683, latitude => 55.6761, altitude => -6);
 	my $sunrise_end = DateTime::Event::Sunrise->sunrise(longitude => 12.5683, latitude => 55.6761, altitude => -0.833);
 	my $sunset_start = DateTime::Event::Sunrise->sunset(longitude => 12.5683, latitude => 55.6761, altitude => -0.833);
