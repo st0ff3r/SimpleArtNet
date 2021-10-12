@@ -59,6 +59,7 @@ USER root
 RUN mkdir -p /led_controller
 
 RUN PERL_MM_USE_DEFAULT=1 cpan install Proc::Killall
+RUN PERL_MM_USE_DEFAULT=1 cpan install Astro::Sunrise
 
 COPY ./docker-entrypoint.sh /docker-entrypoint.sh
 COPY ./artnet.conf /led_controller/
