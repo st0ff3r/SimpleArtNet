@@ -1,5 +1,6 @@
 #! /usr/bin/perl -w
 
+use strict;
 use Config::Simple;
 use IPC::ShareLite;
 use Proc::Killall;
@@ -15,47 +16,53 @@ use constant ARTNET_CONF => 'artnet.conf';
 my $config = new Config::Simple(ARTNET_CONF);
 
 while (1) {
-	my $sun_start = DateTime::Event::Sunrise->new(longitude => 12.5683, latitude => 55.6761, altitude => -6);
-	my $sun_end = DateTime::Event::Sunrise->new(longitude => 12.5683, latitude => 55.6761, altitude => -0.833);
+	my $sunrise_start = DateTime::Event::Sunrise->sunrise(longitude => 12.5683, latitude => 55.6761, altitude => -6);
+	my $sunrise_end = DateTime::Event::Sunrise->sunrise(longitude => 12.5683, latitude => 55.6761, altitude => -0.833);
+	my $sunset_start = DateTime::Event::Sunrise->sunset(longitude => 12.5683, latitude => 55.6761, altitude => -0.833);
+	my $sunset_end = DateTime::Event::Sunrise->sunset(longitude => 12.5683, latitude => 55.6761, altitude => -6);
 	
-	my $dt = DateTime->now(time_zone => 'Europe/Copenhagen');
-	#my $is_dst = $dt->is_dst;
+	my $dt_now = DateTime->now(time_zone => 'Europe/Copenhagen');
+	my $dt_today = $dt_now->clone;
+	$dt_today->subtract(hours => 6);
 	
-	my $rise_start = $sun_start->sunrise_datetime($dt);
-	my $rise_end = $sun_end->sunrise_datetime($dt);
-	my $set_start = $sun_end->sunset_datetime($dt);
-	my $set_end = $sun_start->sunset_datetime($dt);
+	my $dt_rise_start = $sunrise_start->next($dt_today);
+	my $dt_rise_end = $sunrise_end->next($dt_today);
+	my $dt_set_start = $sunset_start->next($dt_today);
+	my $dt_set_end = $sunset_end->next($dt_today);
+
+	my $now = $dt_now->epoch;
+
+	my $rise_start = $dt_rise_start->epoch;
+	my $rise_end = $dt_rise_end->epoch;
+	my $set_start = $dt_set_start->epoch;
+	my $set_end = $dt_set_end->epoch;
 	
-	my $dur_rise = new DateTime::Duration;
-	my $dur_set = new DateTime::Duration;
-	$dur_rise = $rise_end - $rise_start;
-	print "rise: " . $rise_start->hms . "-" . $rise_end->hms . ", " . $dur_rise->minutes . " minutes\n";
+	my $dur_rise = $rise_end - $rise_start;
+	my $dur_set = $set_end - $set_start;
 	
-	$dur_set = ($set_end - $set_start);
-	print "set: " . $set_start->hms . "-" . $set_end->hms . ", " . $dur_set->minutes . " minutes\n";
-	
-	if ($rise_start < $dt && $dt < $rise_end) {
+	warn "now:" . $dt_now . " rise:" . $dt_rise_start . " - " . $dt_rise_end . ", set:" . $dt_set_start . " - " . $dt_set_end . "\n";
+	if ($rise_start <= $now && $now < $rise_end) {
 		warn "rising\n";
-		my $dur = new DateTime::Duration;
-		$dur = $dt - $rise_start;
-		set_intensity(1 - ($dur->minutes * (1 / $dur_rise->minutes)));
+		warn "rise: " . $dt_rise_start->hms . "-" . $dt_rise_end->hms . ", " . $dur_rise . " seconds\n";
+		my $dur = $now - $rise_start;
+		set_intensity(1 - ($dur * (1 / $dur_rise)));
 	}
-	elsif ($rise_end < $dt && $dt < $set_start) {
+	elsif ($rise_end <= $now && $now < $set_start) {
 		warn "up\n";
 		set_intensity(0.0);
 	}
-	elsif ($set_start < $dt && $dt < $set_end) {
+	elsif ($set_start <= $now && $now < $set_end) {
 		warn "setting\n";
-		my $dur = new DateTime::Duration;
-		$dur = $dt - $set_start;
-		set_intensity($dur->minutes * (1 / $dur_set->minutes));
+		warn "set: " . $dt_set_start->hms . "-" . $dt_set_end->hms . ", " . $dur_set . " seconds\n";
+		my $dur = $now - $set_start;
+		set_intensity($dur * (1 / $dur_set));
 	}
-	elsif ($set_end < $dt && $dt < $rise_start) {
+	elsif ($set_end <= $now && $now < $rise_start) {
 		warn "down\n";
 		set_intensity(1.0);
 	}
 	
-	sleep 60;
+	sleep 1;
 }
 
 sub set_intensity {
