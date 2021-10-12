@@ -68,6 +68,7 @@ COPY ./Artnet.pm /led_controller/
 COPY ./send_artnet_data.pl /led_controller/
 COPY ./movie_to_artnet.pl /led_controller/
 COPY ./led_control.pl /led_controller/
+COPY ./night_tracker.pl /led_controller/
 COPY ./test.mov /led_controller/
 COPY ./artnet.data /led_controller/
 
