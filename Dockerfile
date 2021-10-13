@@ -68,7 +68,7 @@ COPY ./docker-entrypoint.sh /docker-entrypoint.sh
 COPY ./artnet.conf /led_controller/
 
 COPY ./LedController.pm /led_controller/
-COPY ./LedController /led_controller/
+COPY ./LedController/Artnet.pm /led_controller/LedController/
 COPY ./send_artnet_data.pl /led_controller/
 COPY ./movie_to_artnet.pl /led_controller/
 COPY ./led_control.pl /led_controller/
