@@ -7,7 +7,7 @@ use IPC::ShareLite;
 use Data::Dumper;
 
 use lib qw ( ./ );
-use Artnet;
+use LedController::Artnet;
 
 use constant ARTNET_CONF => 'artnet.conf';
 
@@ -25,7 +25,7 @@ my $share = IPC::ShareLite->new(
 $SIG{HUP} = sub { $intensity = $share->fetch };
 
 # network connection
-my $a = new Artnet(
+my $a = new LedController::Artnet(
 	peer_addr => $config->param('peer_addr')
 );
 

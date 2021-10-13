@@ -1,6 +1,10 @@
 [- 
 use Data::Dumper;
 use File::Temp qw( tempfile );
+
+use lib qw ( /led_controller );
+use LedController;
+
 -]
 [+ Dumper %fdat +]
 <form method="post" enctype="multipart/form-data">
@@ -16,9 +20,9 @@ if (defined $fdat{movie_file}) {
 	while read($fdat{movie_file}, $buffer, 1073741824);	# max 1 GB
 	close $fh;
 	
-	if (system("/led_controller/movie_to_artnet.pl $temp_file /led_controller/artnet.data") != 0) {
-		die "movie_to_artnet.pl failed: $?";
-	}
+	$c = new LedController;
+	$c->movie_to_artnet(movie_file => $temp_file, artnet_data_file => "/led_controller/artnet.data");
+	
 	unlink $temp_file;
 }
 -]

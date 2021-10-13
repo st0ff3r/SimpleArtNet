@@ -67,7 +67,8 @@ RUN PERL_MM_USE_DEFAULT=1 cpan install IO::Async::Timer::Periodic
 COPY ./docker-entrypoint.sh /docker-entrypoint.sh
 COPY ./artnet.conf /led_controller/
 
-COPY ./Artnet.pm /led_controller/
+COPY ./LedController.pm /led_controller/
+COPY ./LedController /led_controller/
 COPY ./send_artnet_data.pl /led_controller/
 COPY ./movie_to_artnet.pl /led_controller/
 COPY ./led_control.pl /led_controller/

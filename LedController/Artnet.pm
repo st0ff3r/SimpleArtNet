@@ -1,4 +1,4 @@
-package Artnet;
+package LedController::Artnet;
 
 use Data::Dumper;
 
