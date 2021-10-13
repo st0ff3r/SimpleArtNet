@@ -58,6 +58,8 @@ RUN apt-get update && apt-get install -y \
 USER root
 
 RUN mkdir -p /led_controller
+RUN mkdir -p /var/www/led_controller
+RUN chown www-data:www-data /var/www/led_controller
 
 RUN PERL_MM_USE_DEFAULT=1 cpan install Proc::Killall
 RUN PERL_MM_USE_DEFAULT=1 cpan install IO::Async::Timer::Periodic
@@ -72,6 +74,12 @@ COPY ./led_control.pl /led_controller/
 COPY ./sun_tracker.pl /led_controller/
 COPY ./test.mov /led_controller/
 COPY ./artnet.data /led_controller/
+
+RUN chown www-data:www-data /led_controller/artnet.data
+
+COPY ./000-default.conf /etc/apache2/sites-available/
+COPY ./startup.pl /etc/apache2/perl/
+COPY ./index.epl /var/www/led_controller/
 
 CMD /docker-entrypoint.sh
 

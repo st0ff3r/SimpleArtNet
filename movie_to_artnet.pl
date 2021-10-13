@@ -7,7 +7,7 @@ use Image::Size;
 use Config::Simple;
 use Data::Dumper;
 
-use constant ARTNET_CONF => 'artnet.conf';
+use constant ARTNET_CONF => '/led_controller/artnet.conf';
 
 my $config = new Config::Simple(ARTNET_CONF);
 
