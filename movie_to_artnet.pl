@@ -5,10 +5,6 @@ use Data::Dumper;
 use lib qw ( /led_controller );
 use LedController;
 
-use constant ARTNET_CONF => '/led_controller/artnet.conf';
-
-my $config = new Config::Simple(ARTNET_CONF);
-
 my $movie_file = $ARGV[0];
 my $artnet_data_file = $ARGV[1] || "artnet.data";
 
