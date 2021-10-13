@@ -8,7 +8,9 @@ use LedController;
 -]
 [+ Dumper %fdat +]
 <form method="post" enctype="multipart/form-data">
-	<input type="file" id="movie_file" name="movie_file">
+	<input type="file" id="movie_file" name="movie_file"><br>
+	<input type="checkbox" id="loop" name="loop" value="1" checked>
+	<label for="loop">play forth and back</label><br>
 	<input type="submit">
 </form>
 
@@ -16,12 +18,14 @@ use LedController;
 if (defined $fdat{movie_file}) {
 	($fh, $temp_file) = tempfile( CLEANUP => 0 );
 	
+	$loop = $fdat{loop} || undef;
+	
 	print $fh $buffer
 	while read($fdat{movie_file}, $buffer, 1073741824);	# max 1 GB
 	close $fh;
 	
 	$c = new LedController;
-	$c->movie_to_artnet(movie_file => $temp_file, artnet_data_file => "/led_controller/artnet.data");
+	$c->movie_to_artnet(movie_file => $temp_file, artnet_data_file => "/led_controller/artnet.data", loop_forth_and_back => $loop);
 	
 	unlink $temp_file;
 }

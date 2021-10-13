@@ -27,6 +27,7 @@ sub movie_to_artnet {
 	
 	my $movie_file = $p{movie_file};
 	my $artnet_data_file = $p{artnet_data_file};
+	my $loop_forth_and_back = $p{loop_forth_and_back} || undef;
 	
 	my $temp_dir = tempdir( CLEANUP => 1 );
 
@@ -46,7 +47,7 @@ sub movie_to_artnet {
 	my ($fh, $temp_file) = tempfile( CLEANUP => 0 );
 	my ($red, $green, $blue);
 
-	foreach (sort @images) {
+	foreach (sort { $a <=> $b } @images) {
 		($image_size_x, $image_size_y) = imgsize("$temp_dir/$_");
 	
 		my $p = new Image::Magick;
@@ -56,6 +57,19 @@ sub movie_to_artnet {
 			print $fh sprintf("%02x", int($red * 255)) . sprintf("%02x", int($green * 255)) . sprintf("%02x", int($blue * 255));
 		}
 		print $fh "\n";
+	}
+	if ($loop_forth_and_back) {
+		foreach (sort { $b <=> $a } @images) {
+			($image_size_x, $image_size_y) = imgsize("$temp_dir/$_");
+		
+			my $p = new Image::Magick;
+			$p->Read("$temp_dir/$_");
+			for $x (0..$image_size_x) {
+				($red, $green, $blue) = $p->GetPixel( 'x' => $x, 'y' => int($image_size_y / 2) );
+				print $fh sprintf("%02x", int($red * 255)) . sprintf("%02x", int($green * 255)) . sprintf("%02x", int($blue * 255));
+			}
+			print $fh "\n";
+		}
 	}
 	close($fh);
 	move($temp_file, $artnet_data_file) || die $!;	
