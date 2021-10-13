@@ -6,7 +6,9 @@ use lib qw ( /led_controller );
 use LedController;
 
 -]
-[+ Dumper %fdat +]
+[$ if defined $fdat{movie_file} $]
+Uploaded<br>
+[$ endif $]
 <form method="post" enctype="multipart/form-data">
 	<input type="file" id="movie_file" name="movie_file"><br>
 	<input type="checkbox" id="loop" name="loop" value="1" checked>
