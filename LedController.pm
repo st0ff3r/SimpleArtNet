@@ -47,7 +47,8 @@ sub movie_to_artnet {
 	my ($fh, $temp_file) = tempfile( CLEANUP => 0 );
 	my ($red, $green, $blue);
 
-	foreach (sort { $a <=> $b } @images) {
+	@images = sort { $a <=> $b } @images;
+	foreach (@images) {
 		($image_size_x, $image_size_y) = imgsize("$temp_dir/$_");
 	
 		my $p = new Image::Magick;
@@ -58,8 +59,11 @@ sub movie_to_artnet {
 		}
 		print $fh "\n";
 	}
-	if ($loop_forth_and_back) {
-		foreach (sort { $b <=> $a } @images) {
+	if ($loop_forth_and_back && @images >= 3) {
+		@images = sort { $b cmp $a } @images;	# sort reversed
+		shift(@images);	# remove first image
+		pop(@images);	# remove last image
+		foreach (@images) {
 			($image_size_x, $image_size_y) = imgsize("$temp_dir/$_");
 		
 			my $p = new Image::Magick;
