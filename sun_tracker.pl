@@ -37,47 +37,60 @@ sub do_calculation {
 	my $sunset_end = DateTime::Event::Sunrise->sunset(longitude => 12.5683, latitude => 55.6761, altitude => -6);
 	
 	my $dt_now = DateTime->now(time_zone => 'Europe/Copenhagen');
-	my $dt_today = $dt_now->clone;
-	$dt_today->subtract(hours => 6);
+	$dt_now->set(hour => 18);
+	$dt_now->set(minute => 20);
 	
-	my $dt_rise_start = $sunrise_start->next($dt_today);
-	my $dt_rise_end = $sunrise_end->next($dt_today);
-	my $dt_set_start = $sunset_start->next($dt_today);
-	my $dt_set_end = $sunset_end->next($dt_today);
-
 	my $now = $dt_now->epoch;
-
-	my $rise_start = $dt_rise_start->epoch;
-	my $rise_end = $dt_rise_end->epoch;
-	my $set_start = $dt_set_start->epoch;
-	my $set_end = $dt_set_end->epoch;
 	
-	my $dur_rise = $rise_end - $rise_start;
-	my $dur_set = $set_end - $set_start;
+	my $current_rise_start = $sunrise_start->current($dt_now)->epoch;
+	my $current_rise_end = $sunrise_end->current($dt_now)->epoch;
+	my $current_set_start = $sunset_start->current($dt_now)->epoch;
+	my $current_set_end = $sunset_end->current($dt_now)->epoch;
 	
-	warn "now:" . $dt_now . " rise:" . $dt_rise_start . " - " . $dt_rise_end . ", set:" . $dt_set_start . " - " . $dt_set_end . "\n";
-	if ($rise_start <= $now && $now < $rise_end) {
-		warn "rising\n";
-		warn "rise: " . $dt_rise_start->hms . "-" . $dt_rise_end->hms . ", " . $dur_rise . " seconds\n";
-		my $dur = $now - $rise_start;
-		set_intensity(1 - ($dur * (1 / $dur_rise)));
+	# find the sun state
+	my $elapsed_time;
+	my $state = 'up';
+	$elapsed_time = $now - $current_rise_end;
+	
+	$_ = $now - $current_set_start;
+	if ($_ < $elapsed_time) {
+		$state = 'setting';
+		$elapsed_time = $_;
 	}
-	elsif ($rise_end <= $now && $now < $set_start) {
-		warn "up\n";
+	$_ = $now - $current_set_end;
+	if ($_ < $elapsed_time) {
+		$state = 'down';
+		$elapsed_time = $_;
+	}
+	$_ = $now - $current_rise_start;
+	if ($_ < $elapsed_time) {
+		$state = 'rising';
+		$elapsed_time = $_;
+	}
+	$_ = $now - $current_rise_end;
+	
+	warn "$state\n";
+	
+	if ($state eq 'up') {
+		print "sun up " . $sunrise_end->current($dt_now) . " down " . $sunset_start->next($dt_now) . " now " . $dt_now . "\n";
 		set_intensity(0.0);
 	}
-	elsif ($set_start <= $now && $now < $set_end) {
-		warn "setting\n";
-		warn "set: " . $dt_set_start->hms . "-" . $dt_set_end->hms . ", " . $dur_set . " seconds\n";
-		my $dur = $now - $set_start;
-		set_intensity($dur * (1 / $dur_set));
+	elsif ($state eq 'setting') {
+		print "sun up " . $sunrise_end->next($dt_now) . " down " . $sunset_start->next($dt_now) . " now " . $dt_now . "\n";
+		my $next_set_end = $sunset_end->next($dt_now)->epoch;
+		my $dur = $next_set_end - $current_set_start;
+		set_intensity($elapsed_time * (1 / $dur));
 	}
-	elsif ($set_end <= $now && $now < $rise_start) {
-		warn "down\n";
+	elsif ($state eq 'down') {
+		print "sun up " . $sunrise_end->next($dt_now) . " down " . $sunset_start->next($dt_now) . " now " . $dt_now . "\n";
 		set_intensity(1.0);
 	}
-	
-	sleep 1;
+	elsif ($state eq 'rising') {
+		print "sun up " . $sunrise_end->next($dt_now) . " down " . $sunset_start->next($dt_now) . " now " . $dt_now . "\n";
+		my $next_rise_end = $sunrise_end->next($dt_now)->epoch;
+		my $dur = $next_rise_end - $current_rise_start;
+		set_intensity(1 - ($elapsed_time * (1 / $dur)));
+	}
 }
 
 sub set_intensity {
