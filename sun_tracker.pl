@@ -37,9 +37,6 @@ sub do_calculation {
 	my $sunset_end = DateTime::Event::Sunrise->sunset(longitude => 12.5683, latitude => 55.6761, altitude => -6);
 	
 	my $dt_now = DateTime->now(time_zone => 'Europe/Copenhagen');
-	$dt_now->set(hour => 18);
-	$dt_now->set(minute => 20);
-	
 	my $now = $dt_now->epoch;
 	
 	my $current_rise_start = $sunrise_start->current($dt_now)->epoch;
