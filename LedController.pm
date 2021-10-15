@@ -47,7 +47,7 @@ sub movie_to_artnet {
 	my ($fh, $temp_file) = tempfile( CLEANUP => 0 );
 	my ($red, $green, $blue);
 
-	@images = sort { $a <=> $b } @images;
+	@images = sort { $a cmp $b } @images;
 	foreach (@images) {
 		($image_size_x, $image_size_y) = imgsize("$temp_dir/$_");
 	
