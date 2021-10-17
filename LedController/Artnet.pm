@@ -1,9 +1,9 @@
 package LedController::Artnet;
 
+use Config::Simple;
 use Data::Dumper;
 
-use constant NUM_CHANNELS_PER_PIXEL => 3;
-use constant PIXEL_FORMAT => 'GRB';
+use constant ARTNET_CONF => '/led_controller/artnet.conf';
 
 my @gamma_table = (
 	0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
@@ -32,6 +32,10 @@ sub new {
 	my %p = @_;
 	my $self = {};
 
+	my $config = new Config::Simple(ARTNET_CONF);
+	$self->{num_channels_per_pixel} = $config->param{num_channels_per_pixel} || 3;
+	$self->{pixel_format} = $config->param{pixel_format} || 'GRB';
+
 	# network connection
 	$self->{socket} = new IO::Socket::INET (
 		PeerAddr	=> $p{peer_addr} . ":6454",
@@ -54,12 +58,19 @@ sub set_pixel {
 	my $red = $p{red};
 	my $green = $p{green};
 	my $blue = $p{blue};
+	my $white = $p{white};
 	
-	if ($pixel * NUM_CHANNELS_PER_PIXEL <= 512) {
-		if (PIXEL_FORMAT eq 'GRB') {
-			vec($self->{dmx_channels}, $pixel * NUM_CHANNELS_PER_PIXEL + 0, 8) = gamma_correction(int(0xff * $green));
-			vec($self->{dmx_channels}, $pixel * NUM_CHANNELS_PER_PIXEL + 1, 8) = gamma_correction(int(0xff * $red));
-			vec($self->{dmx_channels}, $pixel * NUM_CHANNELS_PER_PIXEL + 2, 8) = gamma_correction(int(0xff * $blue));
+	if ($pixel * $self->{num_channels_per_pixel} <= 512) {
+		if ($self->{pixel_format} eq 'GRB') {
+			vec($self->{dmx_channels}, $pixel * $self->{num_channels_per_pixel} + 0, 8) = gamma_correction(int(0xff * $green));
+			vec($self->{dmx_channels}, $pixel * $self->{num_channels_per_pixel} + 1, 8) = gamma_correction(int(0xff * $red));
+			vec($self->{dmx_channels}, $pixel * $self->{num_channels_per_pixel} + 2, 8) = gamma_correction(int(0xff * $blue));
+		}
+		elsif ($self->{pixel_format} eq 'GRBW') {
+			vec($self->{dmx_channels}, $pixel * $self->{num_channels_per_pixel} + 0, 8) = gamma_correction(int(0xff * $green));
+			vec($self->{dmx_channels}, $pixel * $self->{num_channels_per_pixel} + 1, 8) = gamma_correction(int(0xff * $red));
+			vec($self->{dmx_channels}, $pixel * $self->{num_channels_per_pixel} + 2, 8) = gamma_correction(int(0xff * $blue));
+			vec($self->{dmx_channels}, $pixel * $self->{num_channels_per_pixel} + 3, 8) = gamma_correction(int(0xff * $white));
 		}
 	}
 }
