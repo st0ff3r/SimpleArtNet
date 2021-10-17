@@ -26,7 +26,9 @@ $SIG{HUP} = sub { $intensity = $share->fetch };
 
 # network connection
 my $a = new LedController::Artnet(
-	peer_addr => $config->param('peer_addr')
+	peer_addr => $config->param('peer_addr'),
+	pixel_format => $config->param('pixel_format') || 'GRB',
+	num_channels_per_pixel => $config->param('num_channels_per_pixel') || 3
 );
 
 my @pixel_line;
@@ -37,12 +39,25 @@ while (1) {
 		@pixel_line = (/.{2}/g);
 		my $i = 0;
 		while (($red, $green, $blue) = splice(@pixel_line, 0, 3)) {
-			$a->set_pixel(
-				pixel => $i,
-				red => $intensity * hex($red) / 255,
-				green => $intensity * hex($green) / 255,
-				blue => $intensity * hex($blue) / 255,
-			);
+			if ($config->param('num_channels_per_pixel') == 3) {
+				$a->set_pixel(
+					pixel => $i,
+					red => $intensity * hex($red) / 255,
+					green => $intensity * hex($green) / 255,
+					blue => $intensity * hex($blue) / 255,
+				);
+			}
+			elsif ($config->param('num_channels_per_pixel') == 4) {
+				@_ = sort {$a <=> $b} (hex($red), hex($green), hex($blue));
+				my $white = $intensity * $_[0] / 255;
+				$a->set_pixel(
+					pixel => $i,
+					red => $intensity * hex($red) / 255 - $white,
+					green => $intensity * hex($green) / 255 - $white,
+					blue => $intensity * hex($blue) / 255 - $white,
+					white => $white
+				);
+			}
 			$i++;
 		}
 		$a->send_artnet();

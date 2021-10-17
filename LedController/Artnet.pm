@@ -1,9 +1,6 @@
 package LedController::Artnet;
 
-use Config::Simple;
 use Data::Dumper;
-
-use constant ARTNET_CONF => '/led_controller/artnet.conf';
 
 my @gamma_table = (
 	0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
@@ -32,9 +29,8 @@ sub new {
 	my %p = @_;
 	my $self = {};
 
-	my $config = new Config::Simple(ARTNET_CONF);
-	$self->{num_channels_per_pixel} = $config->param{num_channels_per_pixel} || 3;
-	$self->{pixel_format} = $config->param{pixel_format} || 'GRB';
+	$self->{num_channels_per_pixel} = $p{num_channels_per_pixel};
+	$self->{pixel_format} = $p{pixel_format};
 
 	# network connection
 	$self->{socket} = new IO::Socket::INET (
