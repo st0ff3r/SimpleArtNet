@@ -43,17 +43,17 @@ while (1) {
 			if ($config->param('num_channels_per_pixel') == 3) {
 				$artnet->set_pixel(
 					pixel => $i,
-					red => $intensity * hex($red) / 255,
-					green => $intensity * hex($green) / 255,
-					blue => $intensity * hex($blue) / 255,
+					red => $intensity * hex($red),
+					green => $intensity * hex($green),
+					blue => $intensity * hex($blue),
 				);
 			}
 			elsif ($config->param('num_channels_per_pixel') == 4) {
 				$artnet->set_pixel(
 					pixel => $i,
-					red => $intensity * hex($red) / 255,
-					green => $intensity * hex($green) / 255,
-					blue => $intensity * hex($blue) / 255
+					red => $intensity * hex($red),
+					green => $intensity * hex($green),
+					blue => $intensity * hex($blue)
 				);
 			}
 			$i++;

@@ -59,7 +59,7 @@ sub set_pixel {
 	my $red = $p{red};
 	my $green = $p{green};
 	my $blue = $p{blue};
-	my $white = 0.0;
+	my $white = 0;
 	
 	# do gamma correction
 	$red = gamma_correction($red);
@@ -69,7 +69,7 @@ sub set_pixel {
 	if ($self->{num_channels_per_pixel} == 4) {
 		# convert from rgb to rgbw
 		@_ = sort {$a <=> $b} ($red, $green, $blue);
-		$white = $_[0] / 255;
+		$white = $_[0];
 		$red -= $white;
 		$green -= $white;
 		$blue -= $white;
@@ -79,15 +79,15 @@ sub set_pixel {
 	my $universe = int($pixel * $self->{num_channels_per_pixel} / 512);
 #	print('pixel: ' . $pixel . ' => ' . 'universe: ' . $universe . ', channel: ' . $channel . "\n");
 	if ($self->{pixel_format} eq 'GRB') {
-		vec($self->{dmx_channels}[$universe], $channel + 0, 8) = int(0xff * $green);
-		vec($self->{dmx_channels}[$universe], $channel + 1, 8) = int(0xff * $red);
-		vec($self->{dmx_channels}[$universe], $channel + 2, 8) = int(0xff * $blue);
+		vec($self->{dmx_channels}[$universe], $channel + 0, 8) = $green;
+		vec($self->{dmx_channels}[$universe], $channel + 1, 8) = $red;
+		vec($self->{dmx_channels}[$universe], $channel + 2, 8) = $blue;
 	}
 	elsif ($self->{pixel_format} eq 'GRBW') {
-		vec($self->{dmx_channels}[$universe], $channel + 0, 8) = int(0xff * $green);
-		vec($self->{dmx_channels}[$universe], $channel + 1, 8) = int(0xff * $red);
-		vec($self->{dmx_channels}[$universe], $channel + 2, 8) = int(0xff * $blue);
-		vec($self->{dmx_channels}[$universe], $channel + 3, 8) = int(0xff * $white);
+		vec($self->{dmx_channels}[$universe], $channel + 0, 8) = $green;
+		vec($self->{dmx_channels}[$universe], $channel + 1, 8) = $red;
+		vec($self->{dmx_channels}[$universe], $channel + 2, 8) = $blue;
+		vec($self->{dmx_channels}[$universe], $channel + 3, 8) = $white;
 	}
 }
 
@@ -104,7 +104,7 @@ sub send_artnet {
 
 # private functions
 sub gamma_correction {
-	return $gamma_table[int(0xff * shift)] / 255;
+	return $gamma_table[shift];
 }
 
 1;
