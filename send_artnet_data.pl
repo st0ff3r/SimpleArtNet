@@ -25,7 +25,7 @@ my $share = IPC::ShareLite->new(
 $SIG{HUP} = sub { $intensity = $share->fetch };
 
 # network connection
-my $a = new LedController::Artnet(
+my $artnet = new LedController::Artnet(
 	peer_addr => $config->param('peer_addr'),
 	pixel_format => $config->param('pixel_format') || 'GRB',
 	num_channels_per_pixel => $config->param('num_channels_per_pixel') || 3
@@ -40,7 +40,7 @@ while (1) {
 		my $i = 0;
 		while (($red, $green, $blue) = splice(@pixel_line, 0, 3)) {
 			if ($config->param('num_channels_per_pixel') == 3) {
-				$a->set_pixel(
+				$artnet->set_pixel(
 					pixel => $i,
 					red => $intensity * hex($red) / 255,
 					green => $intensity * hex($green) / 255,
@@ -49,18 +49,19 @@ while (1) {
 			}
 			elsif ($config->param('num_channels_per_pixel') == 4) {
 				@_ = sort {$a <=> $b} (hex($red), hex($green), hex($blue));
-				my $white = $intensity * $_[0] / 255;
-				$a->set_pixel(
+				my $white = $_[0] / 255;
+				my $white = 0.0;
+				$artnet->set_pixel(
 					pixel => $i,
 					red => $intensity * hex($red) / 255 - $white,
 					green => $intensity * hex($green) / 255 - $white,
 					blue => $intensity * hex($blue) / 255 - $white,
-					white => $white
+					white => $intensity * $white
 				);
 			}
 			$i++;
 		}
-		$a->send_artnet();
+		$artnet->send_artnet();
 		usleep($config->param('speed'));
 	}
 	close(FH);
