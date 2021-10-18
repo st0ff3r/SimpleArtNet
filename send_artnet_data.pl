@@ -50,7 +50,6 @@ while (1) {
 			elsif ($config->param('num_channels_per_pixel') == 4) {
 				@_ = sort {$a <=> $b} (hex($red), hex($green), hex($blue));
 				my $white = $_[0] / 255;
-				my $white = 0.0;
 				$artnet->set_pixel(
 					pixel => $i,
 					red => $intensity * hex($red) / 255 - $white,
