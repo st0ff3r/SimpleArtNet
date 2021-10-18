@@ -54,7 +54,8 @@ RUN apt-get update && apt-get install -y \
 	libdatetime-event-sunrise-perl \
 	libdata-hexdump-perl \
 	ffmpeg \
-	imagemagick
+	imagemagick \
+	tcpdump
 
 USER root
 

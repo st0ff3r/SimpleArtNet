@@ -49,14 +49,11 @@ while (1) {
 				);
 			}
 			elsif ($config->param('num_channels_per_pixel') == 4) {
-				@_ = sort {$a <=> $b} (hex($red), hex($green), hex($blue));
-				my $white = $_[0] / 255;
 				$artnet->set_pixel(
 					pixel => $i,
-					red => $intensity * hex($red) / 255 - $white,
-					green => $intensity * hex($green) / 255 - $white,
-					blue => $intensity * hex($blue) / 255 - $white,
-					white => $intensity * $white
+					red => $intensity * hex($red) / 255,
+					green => $intensity * hex($green) / 255,
+					blue => $intensity * hex($blue) / 255
 				);
 			}
 			$i++;
