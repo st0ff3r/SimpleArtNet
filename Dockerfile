@@ -52,6 +52,7 @@ RUN apt-get update && apt-get install -y \
 	libimage-size-perl \
 	libipc-sharelite-perl \
 	libdatetime-event-sunrise-perl \
+	libdata-hexdump-perl \
 	ffmpeg \
 	imagemagick
 

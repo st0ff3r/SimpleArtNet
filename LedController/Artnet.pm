@@ -1,6 +1,8 @@
 package LedController::Artnet;
 
+use POSIX qw( ceil );
 use Data::Dumper;
+use Data::HexDump;
 
 my @gamma_table = (
 	0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
@@ -31,6 +33,7 @@ sub new {
 
 	$self->{num_channels_per_pixel} = $p{num_channels_per_pixel};
 	$self->{pixel_format} = $p{pixel_format};
+	$self->{num_pixels} = $p{num_pixels};
 
 	# network connection
 	$self->{socket} = new IO::Socket::INET (
@@ -38,8 +41,10 @@ sub new {
 		Proto		=> 'udp'
 	) || die "ERROR in socket creation : $!\n";
 
-	$self->{dmx_channels} = chr(0) x 512;
-	$self->{universe} = 0;
+	$self->{num_universes} = ceil($self->{num_pixels} * $self->{num_channels_per_pixel} / 512);
+	for (1..$self->{num_universes}) {
+		$self->{dmx_channels}[$_ - 1] = chr(0) x 512;
+	}
 
 	bless $self, $class;
 
@@ -55,27 +60,30 @@ sub set_pixel {
 	my $green = $p{green};
 	my $blue = $p{blue};
 	my $white = $p{white};
-	
-	if ($pixel * $self->{num_channels_per_pixel} <= 512) {
-		if ($self->{pixel_format} eq 'GRB') {
-			vec($self->{dmx_channels}, $pixel * $self->{num_channels_per_pixel} + 0, 8) = gamma_correction(int(0xff * $green));
-			vec($self->{dmx_channels}, $pixel * $self->{num_channels_per_pixel} + 1, 8) = gamma_correction(int(0xff * $red));
-			vec($self->{dmx_channels}, $pixel * $self->{num_channels_per_pixel} + 2, 8) = gamma_correction(int(0xff * $blue));
-		}
-		elsif ($self->{pixel_format} eq 'GRBW') {
-			vec($self->{dmx_channels}, $pixel * $self->{num_channels_per_pixel} + 0, 8) = gamma_correction(int(0xff * $green));
-			vec($self->{dmx_channels}, $pixel * $self->{num_channels_per_pixel} + 1, 8) = gamma_correction(int(0xff * $red));
-			vec($self->{dmx_channels}, $pixel * $self->{num_channels_per_pixel} + 2, 8) = gamma_correction(int(0xff * $blue));
-			vec($self->{dmx_channels}, $pixel * $self->{num_channels_per_pixel} + 3, 8) = gamma_correction(int(0xff * $white));
-		}
+
+	my $universe = int($pixel * $self->{num_channels_per_pixel} / 512);
+	if ($self->{pixel_format} eq 'GRB') {
+		vec($self->{dmx_channels}[$universe], $pixel * $self->{num_channels_per_pixel} + 0, 8) = gamma_correction(int(0xff * $green));
+		vec($self->{dmx_channels}[$universe], $pixel * $self->{num_channels_per_pixel} + 1, 8) = gamma_correction(int(0xff * $red));
+		vec($self->{dmx_channels}[$universe], $pixel * $self->{num_channels_per_pixel} + 2, 8) = gamma_correction(int(0xff * $blue));
+	}
+	elsif ($self->{pixel_format} eq 'GRBW') {
+		vec($self->{dmx_channels}[$universe], $pixel * $self->{num_channels_per_pixel} + 0, 8) = gamma_correction(int(0xff * $green));
+		vec($self->{dmx_channels}[$universe], $pixel * $self->{num_channels_per_pixel} + 1, 8) = gamma_correction(int(0xff * $red));
+		vec($self->{dmx_channels}[$universe], $pixel * $self->{num_channels_per_pixel} + 2, 8) = gamma_correction(int(0xff * $blue));
+		vec($self->{dmx_channels}[$universe], $pixel * $self->{num_channels_per_pixel} + 3, 8) = gamma_correction(int(0xff * $white));
 	}
 }
 
 sub send_artnet {
 	my ($self) = @_;
 
-	my $packet = "Art-Net\x00\x00\x50\x00\x0e\x00\x00" . chr($self->{universe}) . "\x00" . chr(2) . chr(0) . $self->{dmx_channels};
-	$self->{socket}->send($packet);
+	for (1..$self->{num_universes}) {
+#		warn HexDump $self->{dmx_channels}[$_ - 1];
+		my $packet = "Art-Net\x00\x00\x50\x00\x0e\x00\x00" . chr($_ - 1) . "\x00" . chr(2) . chr(0) . $self->{dmx_channels}[$_ - 1];
+		$self->{socket}->send($packet);
+	}
+#	warn "-----------\n";
 }
 
 # private functions

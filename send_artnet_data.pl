@@ -28,7 +28,8 @@ $SIG{HUP} = sub { $intensity = $share->fetch };
 my $artnet = new LedController::Artnet(
 	peer_addr => $config->param('peer_addr'),
 	pixel_format => $config->param('pixel_format') || 'GRB',
-	num_channels_per_pixel => $config->param('num_channels_per_pixel') || 3
+	num_channels_per_pixel => $config->param('num_channels_per_pixel') || 3,
+	num_pixels => $config->param('num_pixels') || 300
 );
 
 my @pixel_line;
