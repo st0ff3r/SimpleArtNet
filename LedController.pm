@@ -33,7 +33,7 @@ sub movie_to_artnet {
 
 	# convert movie to images
 	#if (system("ffmpeg -loglevel -8 -i " . $movie_file . " -vf scale=" . $config->param('num_pixels') . ":-1:flags=neighbor " . "-filter:v fps=25 " . $temp_dir . "/%05d.png") != 0) {
-	if (system("ffmpeg -loglevel -8 -i " . $movie_file . " -vf scale=" . $config->param('num_pixels') . ":-1:flags=neighbor " . $temp_dir . "/%05d.png") != 0) {
+	if (system("ffmpeg -loglevel -8 -i " . $movie_file . " -vf scale=" . $config->param('num_pixels') . ":-2:flags=neighbor " . $temp_dir . "/%05d.png") != 0) {
 		die "system failed: $?";
 	}
 
