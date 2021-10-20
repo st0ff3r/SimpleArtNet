@@ -76,9 +76,6 @@ COPY ./movie_to_artnet.pl /led_controller/
 COPY ./led_control.pl /led_controller/
 COPY ./sun_tracker.pl /led_controller/
 COPY ./test.mov /led_controller/
-COPY ./artnet.data /led_controller/
-
-RUN chown www-data:www-data /led_controller/artnet.data
 
 COPY ./000-default.conf /etc/apache2/sites-available/
 COPY ./startup.pl /etc/apache2/perl/
