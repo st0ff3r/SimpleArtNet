@@ -35,7 +35,7 @@ my $artnet = new LedController::Artnet(
 my @pixel_line;
 my ($red, $green, $blue);
 while (1) {
-	open(FH, '<', $artnet_data_file) or die $!;
+	open(FH, '<', $artnet_data_file) or warn $!;
 	while(<FH>){
 		@pixel_line = (/.{2}/g);
 		my $i = 0;
