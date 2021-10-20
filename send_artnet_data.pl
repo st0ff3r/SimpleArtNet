@@ -1,7 +1,6 @@
 #! /usr/bin/perl -w
 
 use IO::Socket::INET;
-use Time::HiRes qw(usleep gettimeofday tv_interval);
 use Config::Simple;
 use IPC::ShareLite;
 use Data::Dumper;
@@ -58,8 +57,7 @@ while (1) {
 			}
 			$i++;
 		}
-		$artnet->send_artnet();
-		usleep($config->param('speed'));
+		$artnet->send_artnet(fps => $config->param('fps'));
 	}
 	close(FH);
 }

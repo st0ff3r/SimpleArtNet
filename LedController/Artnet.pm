@@ -1,5 +1,6 @@
 package LedController::Artnet;
 
+use Time::HiRes qw(usleep gettimeofday tv_interval);
 use POSIX qw( ceil );
 use Data::Dumper;
 use Data::HexDump;
@@ -92,13 +93,15 @@ sub set_pixel {
 }
 
 sub send_artnet {
-	my ($self) = @_;
+	my $self = shift;
+	my %p = @_;
 
 	for (1..$self->{num_universes}) {
 #		warn HexDump $self->{dmx_channels}[$_ - 1];
 		my $packet = "Art-Net\x00\x00\x50\x00\x0e\x00\x00" . chr($_ - 1) . "\x00" . chr(2) . chr(0) . $self->{dmx_channels}[$_ - 1];
 		$self->{socket}->send($packet);
 	}
+	usleep(1000_000 / $p{fps});
 #	warn "-----------\n";
 }
 
