@@ -30,12 +30,15 @@ sub movie_to_artnet {
 	my $movie_file = $p{movie_file};
 	my $artnet_data_file = $p{artnet_data_file};
 	my $loop_forth_and_back = $p{loop_forth_and_back} || undef;
+	my $fps = $p{fps} || 25;
 	
 	my $temp_dir = tempdir( CLEANUP => 1 );
 
 	# convert movie to images
-	#if (system("ffmpeg -loglevel -8 -i " . $movie_file . " -vf scale=" . $config->param('num_pixels') . ":-1:flags=neighbor " . "-filter:v fps=25 " . $temp_dir . "/%05d.png") != 0) {
-	if (system("ffmpeg -loglevel -8 -i " . $movie_file . " -vf scale=" . $config->param('num_pixels') . ":-2:flags=neighbor " . $temp_dir . "/%05d.png") != 0) {
+	if (system(	"ffmpeg -i " . $movie_file . 
+				" -vf scale=" . $config->param('num_pixels') . ":-2:flags=neighbor " .
+				"-r " . $config->param('fps') . " " . 
+				$temp_dir . "/%05d.png") != 0) {
 		warn "system failed: $?";
 	}
 	
