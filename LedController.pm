@@ -50,7 +50,7 @@ sub movie_to_artnet {
 
 	my ($image_size_x, $image_size_y);
 	my $x;
-	my ($fh, $temp_file) = tempfile( CLEANUP => 0 );
+	my ($fh, $temp_file) = tempfile( CLEANUP => 1 );
 	my ($red, $green, $blue);
 
 	@images = sort { $a cmp $b } @images;
