@@ -16,6 +16,8 @@ sub new {
 	my %p = @_;
 	my $self = {};
 
+	$self->{slitscan_image} = new Image::Magick;
+	
 	bless $self, $class;
 
 	return($self);
@@ -34,13 +36,17 @@ sub movie_to_artnet {
 	# convert movie to images
 	#if (system("ffmpeg -loglevel -8 -i " . $movie_file . " -vf scale=" . $config->param('num_pixels') . ":-1:flags=neighbor " . "-filter:v fps=25 " . $temp_dir . "/%05d.png") != 0) {
 	if (system("ffmpeg -loglevel -8 -i " . $movie_file . " -vf scale=" . $config->param('num_pixels') . ":-2:flags=neighbor " . $temp_dir . "/%05d.png") != 0) {
-		die "system failed: $?";
+		warn "system failed: $?";
 	}
-
+	
 	# get all images
 	opendir(DIR, $temp_dir) || die "can't opendir $temp_dir: $!";
 	my @images = grep { -f "$temp_dir/$_" } readdir(DIR);
 	closedir DIR;
+
+	# prepare slitscan image
+	$self->{slitscan_image}->Set(size=>$config->param('num_pixels') . 'x' . scalar(@images));
+	$self->{slitscan_image}->ReadImage('canvas:white');
 
 	my ($image_size_x, $image_size_y);
 	my $x;
@@ -48,6 +54,7 @@ sub movie_to_artnet {
 	my ($red, $green, $blue);
 
 	@images = sort { $a cmp $b } @images;
+	my $i = 0;
 	foreach (@images) {
 		($image_size_x, $image_size_y) = imgsize("$temp_dir/$_");
 	
@@ -56,8 +63,11 @@ sub movie_to_artnet {
 		for $x (0..$image_size_x) {
 			($red, $green, $blue) = $p->GetPixel( 'x' => $x, 'y' => int($image_size_y / 2) );
 			print $fh sprintf("%02x", int($red * 255)) . sprintf("%02x", int($green * 255)) . sprintf("%02x", int($blue * 255));
+			
+			$self->{slitscan_image}->SetPixel(x => $x, y => $i, color=> [$red, $green, $blue]);
 		}
 		print $fh "\n";
+		$i++;
 	}
 	if ($loop_forth_and_back && @images >= 3) {
 		@images = sort { $b cmp $a } @images;	# sort reversed
@@ -77,6 +87,13 @@ sub movie_to_artnet {
 	}
 	close($fh);
 	move($temp_file, $artnet_data_file) || die $!;	
+}
+
+sub movie_to_slitscan {
+	my $self = shift;
+	my %p = @_;
+
+	$self->{slitscan_image}->Write($p{slitscan_file});	
 }
 
 1;
