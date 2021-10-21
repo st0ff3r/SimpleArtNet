@@ -36,6 +36,10 @@ sub movie_to_artnet {
 	my $temp_dir = tempdir( CLEANUP => 0 );
 
 	# convert movie to images
+	warn(	"ffmpeg -i " . $movie_file . 
+				" -vf scale=" . $config->param('num_pixels') . ":-2:flags=neighbor " .
+				"-r " . $config->param('fps') . " " . 
+				$temp_dir . "/%05d.png");
 	if (system(	"ffmpeg -i " . $movie_file . 
 				" -vf scale=" . $config->param('num_pixels') . ":-2:flags=neighbor " .
 				"-r " . $config->param('fps') . " " . 
