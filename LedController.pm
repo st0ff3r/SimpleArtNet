@@ -5,6 +5,7 @@ use File::Copy;
 use Image::Magick;
 use Image::Size;
 use Config::Simple;
+use File::Path qw(remove_tree);
 use Data::Dumper;
 
 use constant ARTNET_CONF => '/led_controller/artnet.conf';
@@ -32,7 +33,7 @@ sub movie_to_artnet {
 	my $loop_forth_and_back = $p{loop_forth_and_back} || undef;
 	my $fps = $p{fps} || 25;
 	
-	my $temp_dir = tempdir( CLEANUP => 1 );
+	my $temp_dir = tempdir( CLEANUP => 0 );
 
 	# convert movie to images
 	if (system(	"ffmpeg -i " . $movie_file . 
@@ -89,7 +90,8 @@ sub movie_to_artnet {
 		}
 	}
 	close($fh);
-	move($temp_file, $artnet_data_file) || die $!;	
+	move($temp_file, $artnet_data_file) || die $!;
+	remove_tree($temp_dir);
 }
 
 sub movie_to_slitscan {
