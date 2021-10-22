@@ -59,9 +59,10 @@ RUN apt-get update && apt-get install -y \
 
 USER root
 
-RUN mkdir -p /led_controller
-RUN mkdir -p /var/www/led_controller
-RUN chown www-data:www-data /var/www/led_controller
+RUN mkdir -p /led_controller/data
+RUN mkdir -p /var/www/led_controller/images
+RUN chown -R www-data:www-data /led_controller
+RUN chown -R www-data:www-data /var/www/led_controller
 
 RUN PERL_MM_USE_DEFAULT=1 cpan install Proc::Killall
 RUN PERL_MM_USE_DEFAULT=1 cpan install IO::Async::Timer::Periodic
