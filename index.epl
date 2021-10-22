@@ -1,10 +1,12 @@
 [- 
 use Data::Dumper;
 use File::Temp qw( tempfile );
+use Time::HiRes qw(usleep gettimeofday tv_interval);
 
 use lib qw ( /led_controller );
 use LedController;
 
+$timestamp = int (gettimeofday * 1000);
 -]
 <form method="post" enctype="multipart/form-data">
 	<input type="file" id="movie_file" name="movie_file"><br>
@@ -16,7 +18,7 @@ use LedController;
 [$ if defined $fdat{movie_file} $]
 Uploaded<br>
 [$ endif $]
-<img src="images/slitscan.png">
+<img src="images/slitscan.png?[+ $timestamp +]">
 
 [- 
 if (defined $fdat{movie_file}) {
