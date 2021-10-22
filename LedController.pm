@@ -37,11 +37,11 @@ sub movie_to_artnet {
 
 	# convert movie to images
 	warn(	"ffmpeg -i " . $movie_file . 
-				" -vf scale=" . $config->param('num_pixels') . ":-2:flags=neighbor " .
+				qq[ -vf "scale=] . $config->param('num_pixels') . qq[:-2:flags=neighbor,crop=] . $config->param('num_pixels') . qq[:1:0:" ] .
 				"-r " . $config->param('fps') . " " . 
 				$temp_dir . "/%05d.png");
 	if (system(	"ffmpeg -i " . $movie_file . 
-				" -vf scale=" . $config->param('num_pixels') . ":-2:flags=neighbor " .
+				qq[ -vf "scale=] . $config->param('num_pixels') . qq[:-2:flags=neighbor,crop=] . $config->param('num_pixels') . qq[:1:0:" ] .
 				"-r " . $config->param('fps') . " " . 
 				$temp_dir . "/%05d.png") != 0) {
 		warn "system failed: $?";
@@ -102,7 +102,9 @@ sub movie_to_slitscan {
 	my $self = shift;
 	my %p = @_;
 
-	$self->{slitscan_image}->Write($p{slitscan_file});	
+	open(IMAGE, $p{slitscan_file});
+	$self->{slitscan_image}->Write($p{slitscan_file});
+	close(IMAGE);
 }
 
 1;
