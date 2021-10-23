@@ -39,11 +39,11 @@ sub movie_to_artnet {
 	warn(	"ffmpeg -i " . $movie_file . 
 				qq[ -vf "scale=] . $config->param('num_pixels') . qq[:-2:flags=neighbor,crop=] . $config->param('num_pixels') . qq[:1:0:" ] .
 				"-r " . $config->param('fps') . " " . 
-				$temp_dir . "/%05d.png");
+				$temp_dir . "/%08d.png");
 	if (system(	"ffmpeg -i " . $movie_file . 
 				qq[ -vf "scale=] . $config->param('num_pixels') . qq[:-2:flags=neighbor,crop=] . $config->param('num_pixels') . qq[:1:0:" ] .
 				"-r " . $config->param('fps') . " " . 
-				$temp_dir . "/%05d.png") != 0) {
+				$temp_dir . "/%08d.png") != 0) {
 		warn "system failed: $?";
 	}
 	
