@@ -26,8 +26,8 @@ my $share_intensity = IPC::ShareLite->new(
 	-destroy	=> 'yes'
 ) or die $!;
 
-$SIG{HUP} = sub { $intensity = $share_intensity->fetch };
-$SIG{USR1} = sub {
+$SIG{USR1} = sub { $intensity = $share_intensity->fetch };
+$SIG{USR2} = sub {
 	$cross_fade_state = 'fade_out';
 	
 	warn "fading to new data\n";

@@ -102,7 +102,7 @@ sub set_intensity {
 	) or die $!;
 
 	$share->store($intensity);
-	killall('HUP', 'send_artnet_data');
+	killall('USR1', 'send_artnet_data');
 }
 
 1;

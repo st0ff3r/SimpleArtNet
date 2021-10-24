@@ -99,7 +99,7 @@ sub movie_to_artnet {
 	remove_tree($temp_dir);
 
 	# tell send_artnet_data to fade to new
-	killall('USR1', 'send_artnet_data');
+	killall('USR2', 'send_artnet_data');
 	
 }
 
