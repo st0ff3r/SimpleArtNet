@@ -55,7 +55,6 @@ while (1) {
 		@pixel_line = (/.{2}/g);
 		if ($cross_fade_state eq 'fade_out' && $cross_fade_intensity > 0.0) {
 			$cross_fade_intensity -= CROSS_FADE_TIME;	# 1000 steps
-			warn "fading out, intensity: " . $cross_fade_intensity;
 		}
 		elsif ($cross_fade_state eq 'fade_out' && $cross_fade_intensity <= 0) {
 			$cross_fade_intensity = 0.0;
@@ -66,7 +65,6 @@ while (1) {
 		}
 		elsif ($cross_fade_state eq 'fade_in' && $cross_fade_intensity < 1.0) {
 			$cross_fade_intensity += CROSS_FADE_TIME;
-			warn "fading in, intensity: " . $cross_fade_intensity;
 		}
 		elsif ($cross_fade_state eq 'fade_in' && $cross_fade_intensity >= 1.0) {
 			$cross_fade_intensity = 1.0;
