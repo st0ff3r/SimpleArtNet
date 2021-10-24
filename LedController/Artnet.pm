@@ -61,7 +61,7 @@ sub set_pixel {
 	my $green = $p{green};
 	my $blue = $p{blue};
 	my $white = 0;
-	
+		
 	# do gamma correction
 	$red = gamma_correction($red);
 	$green = gamma_correction($green);

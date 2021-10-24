@@ -19,7 +19,6 @@ my $new_artnet_data = '';
 my $intensity = 1.0;
 my $cross_fade_intensity = 0.0;
 my $cross_fade_state = 'fade_in';
-my $artnet_data_file_fh;
 
 my $share_intensity = IPC::ShareLite->new(
 	-key		=> 6454,
@@ -32,9 +31,9 @@ $SIG{USR1} = sub {
 	$cross_fade_state = 'fade_out';
 	
 	warn "fading to new data\n";
-	open($artnet_data_file_fh, '<', $artnet_data_file) or warn $!;
-	$new_artnet_data = do { local $/; <$artnet_data_file_fh> };	# read all data into memory
-	close $artnet_data_file_fh;
+	open(FH, '<', $artnet_data_file) or warn $!;
+	$new_artnet_data = do { local $/; <FH> };	# read all data into memory
+	close FH;
 };
 
 # network connection
@@ -47,9 +46,9 @@ my $artnet = new LedController::Artnet(
 
 my @pixel_line;
 my ($red, $green, $blue);
-open($artnet_data_file_fh, '<', $artnet_data_file) or warn $!;
-$artnet_data = do { local $/; <$artnet_data_file_fh> };	# read all data into memory
-close $artnet_data_file_fh;
+open(FH, '<', $artnet_data_file) or warn $!;
+$artnet_data = do { local $/; <FH> };	# read all data into memory
+close FH;
 while (1) {
 	foreach (split("\n", $artnet_data)) {
 		@pixel_line = (/.{2}/g);
@@ -57,16 +56,19 @@ while (1) {
 			$cross_fade_intensity -= CROSS_FADE_TIME;	# 1000 steps
 		}
 		elsif ($cross_fade_state eq 'fade_out' && $cross_fade_intensity <= 0) {
+			warn "faded out\n";
 			$cross_fade_intensity = 0.0;
 			$cross_fade_state = 'off';
 			# switch to new data
 			$artnet_data = $new_artnet_data;
 			$cross_fade_state = 'fade_in';
+			last;
 		}
 		elsif ($cross_fade_state eq 'fade_in' && $cross_fade_intensity < 1.0) {
 			$cross_fade_intensity += CROSS_FADE_TIME;
 		}
 		elsif ($cross_fade_state eq 'fade_in' && $cross_fade_intensity >= 1.0) {
+			warn "faded in\n";
 			$cross_fade_intensity = 1.0;
 			$cross_fade_state = 'on';
 		}
