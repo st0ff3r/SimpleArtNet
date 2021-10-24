@@ -1,0 +1,29 @@
+[- 
+use Data::Dumper;
+use File::Temp qw( tempfile );
+use Time::HiRes qw(usleep gettimeofday tv_interval);
+
+use lib qw ( /led_controller );
+use LedController;
+
+$timestamp = int (gettimeofday * 1000);
+-]
+
+[+ warn Dumper $fdat{movie_file} +]
+[- 
+if (defined $fdat{movie_file}) {
+	($fh, $temp_file) = tempfile( CLEANUP => 0 );
+	
+	$loop = $fdat{loop} || undef;
+	
+	print $fh $buffer
+	while read($fdat{movie_file}, $buffer, 1073741824);	# max 1 GB
+	close $fh;
+	
+	$c = new LedController;
+	$c->movie_to_artnet(movie_file => $temp_file, artnet_data_file => "/led_controller/data/artnet.data", loop_forth_and_back => $loop);
+	$c->movie_to_slitscan(slitscan_file => "/var/www/led_controller/images/slitscan.png");
+	
+	unlink $temp_file;
+}
+-]
