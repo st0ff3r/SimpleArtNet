@@ -6,6 +6,7 @@ use Image::Magick;
 use Image::Size;
 use Config::Simple;
 use File::Path qw(remove_tree);
+use Proc::Killall;
 use Data::Dumper;
 
 use constant ARTNET_CONF => '/led_controller/artnet.conf';
@@ -96,6 +97,10 @@ sub movie_to_artnet {
 	close($fh);
 	move($temp_file, $artnet_data_file) || die $!;
 	remove_tree($temp_dir);
+
+	# tell send_artnet_data to fade to new
+	killall('USR1', 'send_artnet_data');
+	
 }
 
 sub movie_to_slitscan {
