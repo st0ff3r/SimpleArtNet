@@ -41,7 +41,7 @@ sub movie_to_artnet {
 				qq[ -vf "scale=] . $config->param('num_pixels') . qq[:-2:flags=neighbor,crop=] . $config->param('num_pixels') . qq[:1:0:" ] .
 				"-r " . $config->param('fps') . " " . 
 				$temp_dir . "/%08d.png");
-	if (system(	"ffmpeg -i " . $movie_file . 
+	if (exec(	"ffmpeg -i " . $movie_file . 
 				qq[ -vf "scale=] . $config->param('num_pixels') . qq[:-2:flags=neighbor,crop=] . $config->param('num_pixels') . qq[:1:0:" ] .
 				"-r " . $config->param('fps') . " " . 
 				$temp_dir . "/%08d.png") != 0) {
