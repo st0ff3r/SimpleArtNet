@@ -9,7 +9,6 @@ use lib qw ( ./ );
 use LedController::Artnet;
 
 use constant ARTNET_CONF => '/led_controller/artnet.conf';
-use constant CROSS_FADE_TIME => 0.01;
 
 my $config = new Config::Simple(ARTNET_CONF);
 my $artnet_data_file = $ARGV[0] || "data/artnet.data";
@@ -19,6 +18,9 @@ my $new_artnet_data = '';
 my $intensity = 1.0;
 my $cross_fade_intensity = 0.0;
 my $cross_fade_state = 'fade_in';
+
+my $cross_fade_time = $config->param('cross_fade_time') || 5;
+my $cross_fade_per_step = 1 / ($cross_fade_time * $config->param('fps')) / 2;
 
 my $share_intensity = IPC::ShareLite->new(
 	-key		=> 6454,
@@ -53,7 +55,7 @@ while (1) {
 	foreach (split("\n", $artnet_data)) {
 		@pixel_line = (/.{2}/g);
 		if ($cross_fade_state eq 'fade_out' && $cross_fade_intensity > 0.0) {
-			$cross_fade_intensity -= CROSS_FADE_TIME;	# 1000 steps
+			$cross_fade_intensity -= $cross_fade_per_step;	# 1000 steps
 		}
 		elsif ($cross_fade_state eq 'fade_out' && $cross_fade_intensity <= 0) {
 			warn "faded out\n";
@@ -65,7 +67,7 @@ while (1) {
 			last;
 		}
 		elsif ($cross_fade_state eq 'fade_in' && $cross_fade_intensity < 1.0) {
-			$cross_fade_intensity += CROSS_FADE_TIME;
+			$cross_fade_intensity += $cross_fade_per_step;
 		}
 		elsif ($cross_fade_state eq 'fade_in' && $cross_fade_intensity >= 1.0) {
 			warn "faded in\n";
