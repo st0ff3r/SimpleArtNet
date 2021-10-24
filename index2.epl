@@ -38,6 +38,7 @@ $timestamp = int (gettimeofday * 1000);
 				</div>
 			</div>
 			<div id="uploaded_image" class="row mt-5"></div>
+			<img src="images/slitscan.png?[+ $timestamp +]">
 		</div>
 	</body>
 </html>
@@ -116,5 +117,3 @@ _('drag_drop').ondrop = function(event)
 }
 
 </script>
-
-<img src="images/slitscan.png?[+ $timestamp +]">
