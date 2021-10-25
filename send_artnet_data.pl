@@ -20,7 +20,7 @@ my $cross_fade_intensity = 0.0;
 my $cross_fade_state = 'fade_in';
 
 my $cross_fade_time = $config->param('cross_fade_time') || 2;
-my $cross_fade_per_step = 1 / ($cross_fade_time * $config->param('fps')) / 2;
+my $cross_fade_per_step = $cross_fade_time / $config->param('fps') / 2;
 
 my $share_intensity = IPC::ShareLite->new(
 	-key		=> 6454,
@@ -61,7 +61,7 @@ while (1) {
 	foreach (split("\n", $artnet_data)) {
 		@pixel_line = (/.{2}/g);
 		if ($cross_fade_state eq 'fade_out' && $cross_fade_intensity > 0.0) {
-			$cross_fade_intensity -= $cross_fade_per_step;	# 1000 steps
+			$cross_fade_intensity -= $cross_fade_per_step;
 		}
 		elsif ($cross_fade_state eq 'fade_out' && $cross_fade_intensity <= 0) {
 			warn "faded out\n";
@@ -84,6 +84,13 @@ while (1) {
 			warn "faded in\n";
 			$cross_fade_intensity = 1.0;
 			$cross_fade_state = 'on';
+		}
+		# respect the limits
+		if ($cross_fade_intensity < 0.0) {
+			$cross_fade_intensity = 0.0;
+		}
+		if ($cross_fade_intensity > 1.0) {
+			$cross_fade_intensity = 1.0;
 		}
 		my $i = 0;
 		while (($red, $green, $blue) = splice(@pixel_line, 0, 3)) {
