@@ -104,7 +104,12 @@ _('drag_drop').ondrop = function(event)
 		ajax_request.upload.addEventListener('progress', function(event){
 			var percent_completed = Math.round((event.loaded / event.total) * 100);
 			_('progress_bar_process').style.width = percent_completed + '%';
-			_('progress_bar_process').innerHTML = percent_completed + '% completed';
+			if (percent_completed < 100) {
+				_('progress_bar_process').innerHTML = percent_completed + '% completed';
+			}
+			else {
+				_('progress_bar_process').innerHTML = percent_completed + '% completed - processing...';
+			}
 		});
 
 		ajax_request.addEventListener('load', function(event){
