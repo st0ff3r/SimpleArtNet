@@ -38,6 +38,10 @@ $SIG{USR2} = sub {
 	close FH;
 };
 
+my $should_exit = 0;
+$SIG{HUP} = sub { $cross_fade_state = 'fade_out'; $should_exit = 1 };
+$SIG{INT} = sub { $cross_fade_state = 'fade_out'; $should_exit = 1 };
+
 # network connection
 my $artnet = new LedController::Artnet(
 	peer_addr => $config->param('peer_addr'),
@@ -61,10 +65,15 @@ while (1) {
 			warn "faded out\n";
 			$cross_fade_intensity = 0.0;
 			$cross_fade_state = 'off';
-			# switch to new data
-			$artnet_data = $new_artnet_data;
-			$cross_fade_state = 'fade_in';
-			last;
+			if ($should_exit) {
+				die "quitting\n";
+			}
+			else {
+				# switch to new data
+				$artnet_data = $new_artnet_data;
+				$cross_fade_state = 'fade_in';
+				last;
+			}
 		}
 		elsif ($cross_fade_state eq 'fade_in' && $cross_fade_intensity < 1.0) {
 			$cross_fade_intensity += $cross_fade_per_step;
