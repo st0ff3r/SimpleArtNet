@@ -42,6 +42,7 @@ my $should_exit = 0;
 $SIG{HUP} = sub { $cross_fade_state = 'fade_out'; $should_exit = 1 };
 $SIG{TERM} = sub { $cross_fade_state = 'fade_out'; $should_exit = 1 };
 $SIG{INT} = sub { $cross_fade_state = 'fade_out'; $should_exit = 1 };
+$SIG{KILL} = sub { $cross_fade_state = 'fade_out'; $should_exit = 1 };
 
 # network connection
 my $artnet = new LedController::Artnet(
