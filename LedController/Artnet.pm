@@ -46,6 +46,8 @@ sub new {
 	for (1..$self->{num_universes}) {
 		$self->{dmx_channels}[$_ - 1] = chr(0) x 512;
 	}
+	
+	$self->{last_time} = [gettimeofday];
 
 	bless $self, $class;
 
@@ -97,12 +99,14 @@ sub send_artnet {
 	my %p = @_;
 
 	for (1..$self->{num_universes}) {
-#		warn HexDump $self->{dmx_channels}[$_ - 1];
 		my $packet = "Art-Net\x00\x00\x50\x00\x0e\x00\x00" . chr($_ - 1) . "\x00" . chr(2) . chr(0) . $self->{dmx_channels}[$_ - 1];
 		$self->{socket}->send($packet);
 	}
-	usleep(1000_000 / $p{fps});
-#	warn "-----------\n";
+	# send frames at precise time interval
+	while (tv_interval($self->{last_time}) < (1 / $p{fps})) {
+		usleep 1;
+	}
+	$self->{last_time} = [gettimeofday];
 }
 
 # private functions
