@@ -19,7 +19,7 @@ my $intensity = 1.0;
 my $cross_fade_intensity = 0.0;
 my $cross_fade_state = 'fade_in';
 
-my $cross_fade_time = $config->param('cross_fade_time') || 5;
+my $cross_fade_time = $config->param('cross_fade_time') || 2;
 my $cross_fade_per_step = 1 / ($cross_fade_time * $config->param('fps')) / 2;
 
 my $share_intensity = IPC::ShareLite->new(
