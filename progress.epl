@@ -1,0 +1,25 @@
+#! /usr/bin/perl -w
+
+use IPC::ShareLite;
+use Data::Dumper;
+
+my $processing_progress = IPC::ShareLite->new(
+	-key		=> 6455,
+	-create		=> 'yes',
+	-destroy	=> 'no'
+) or die $!;
+
+my $progress = 0.0;
+my $last_progress = 0.0;
+
+while (1) {
+	$progress = $processing_progress->fetch;
+	if ($last_progress ne $progress) {
+		print $progress . "\n";
+	}
+	$last_progress = $progress;
+}
+
+1;
+
+__END__

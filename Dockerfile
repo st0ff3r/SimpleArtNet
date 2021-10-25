@@ -82,6 +82,7 @@ COPY ./000-default.conf /etc/apache2/sites-available/
 COPY ./startup.pl /etc/apache2/perl/
 COPY ./index.epl /var/www/led_controller/
 COPY ./upload.epl /var/www/led_controller/
+COPY ./progress.epl /var/www/led_controller/
 
 CMD /docker-entrypoint.sh
 

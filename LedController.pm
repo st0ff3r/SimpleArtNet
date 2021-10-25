@@ -7,6 +7,7 @@ use Image::Size;
 use Config::Simple;
 use File::Path qw(remove_tree);
 use Proc::Killall;
+use IPC::ShareLite;
 use Data::Dumper;
 
 use constant ARTNET_CONF => '/led_controller/artnet.conf';
@@ -19,6 +20,13 @@ sub new {
 	my $self = {};
 
 	$self->{slitscan_image} = new Image::Magick;
+	$self->{processing_progress} = IPC::ShareLite->new(
+		-key		=> 6455,
+		-create		=> 'yes',
+		-destroy	=> 'yes'
+	) or die $!;
+	
+	$self->{processing_progress}->store(0.0);
 	
 	bless $self, $class;
 
@@ -47,6 +55,7 @@ sub movie_to_artnet {
 				$temp_dir . "/%08d.png") != 0) {
 		warn "system failed: $?";
 	}
+	$self->{processing_progress}->store(50.0);	# halfway done
 	
 	# get all images
 	opendir(DIR, $temp_dir) || die "can't opendir $temp_dir: $!";
@@ -64,6 +73,7 @@ sub movie_to_artnet {
 
 	@images = sort { $a cmp $b } @images;
 	my $i = 0;
+	my $progress_inc = 50.0 / (@images + ($loop_forth_and_back ? @images - 2 : 0));
 	foreach (@images) {
 		($image_size_x, $image_size_y) = imgsize("$temp_dir/$_");
 	
@@ -77,6 +87,7 @@ sub movie_to_artnet {
 		}
 		print $fh "\n";
 		$i++;
+		$self->{processing_progress}->store( $self->{processing_progress}->fetch + $progress_inc);
 	}
 	if ($loop_forth_and_back && @images >= 3) {
 		@images = sort { $b cmp $a } @images;	# sort reversed
@@ -92,6 +103,7 @@ sub movie_to_artnet {
 				print $fh sprintf("%02x", int($red * 255)) . sprintf("%02x", int($green * 255)) . sprintf("%02x", int($blue * 255));
 			}
 			print $fh "\n";
+			$self->{processing_progress}->store( $self->{processing_progress}->fetch + $progress_inc);
 		}
 	}
 	close($fh);

@@ -14,7 +14,7 @@ $timestamp = int (gettimeofday * 1000);
 if (defined $fdat{movie_file}) {
 	($fh, $temp_file) = tempfile( CLEANUP => 0 );
 	
-	$loop = $fdat{loop} || undef;
+	$loop = $fdat{loop} || 1;
 	
 	print $fh $buffer
 	while read($fdat{movie_file}, $buffer, 1073741824);	# max 1 GB
