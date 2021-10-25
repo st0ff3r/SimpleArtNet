@@ -113,6 +113,11 @@ _('drag_drop').ondrop = function(event)
 
 			var unique = Date.now();
 			_('slitscan').src = 'images/slitscan.png?' + unique;
+			
+			setTimeout(function() {
+				_('progress_bar').style.display = 'none'; 
+				_('uploaded_image').style.display = 'none'; 
+			}, 3000);
 		});
 
 		ajax_request.send(form_data);
