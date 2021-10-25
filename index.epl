@@ -1,39 +1,122 @@
 [- 
 use Data::Dumper;
-use File::Temp qw( tempfile );
 use Time::HiRes qw(usleep gettimeofday tv_interval);
-
-use lib qw ( /led_controller );
-use LedController;
 
 $timestamp = int (gettimeofday * 1000);
 -]
-<form method="post" enctype="multipart/form-data">
-	<input type="file" id="movie_file" name="movie_file"><br>
-	<input type="checkbox" id="loop" name="loop" value="1" checked>
-	<label for="loop">play forth and back</label><br>
-	<input type="submit">
-</form>
-<br>
-[$ if defined $fdat{movie_file} $]
-Uploaded<br>
-[$ endif $]
-<img src="images/slitscan.png?[+ $timestamp +]">
+<!doctype html>
+<html lang="en">
+	<head>
+		<!-- Required meta tags -->
+		<meta charset="utf-8">
+		<meta name="viewport" content="width=device-width, initial-scale=1">
 
-[- 
-if (defined $fdat{movie_file}) {
-	($fh, $temp_file) = tempfile( CLEANUP => 0 );
-	
-	$loop = $fdat{loop} || undef;
-	
-	print $fh $buffer
-	while read($fdat{movie_file}, $buffer, 1073741824);	# max 1 GB
-	close $fh;
-	
-	$c = new LedController;
-	$c->movie_to_artnet(movie_file => $temp_file, artnet_data_file => "/led_controller/data/artnet.data", loop_forth_and_back => $loop);
-	$c->movie_to_slitscan(slitscan_file => "/var/www/led_controller/images/slitscan.png");
-	
-	unlink $temp_file;
+		<!-- Bootstrap CSS -->
+		<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous">
+
+		<title>Drag & Drop Upload movie file to LED controller</title>
+	</head>
+	<body>
+
+		<div class="container">
+			<div class="card">
+				<div class="card-header">Drag & Drop File Here</div>
+				<div class="card-body">
+					<div class="row">
+						<div class="col-md-3">&nbsp;</div>
+						<div class="col-md-6">
+							<div id="drag_drop">Drag & Drop File Here</div>
+						</div>
+						<div class="col-md-3">&nbsp;</div>
+					</div>
+				</div>
+			</div>
+			<br />
+			<div class="progress" id="progress_bar" style="display:none; height:50px;">
+				<div class="progress-bar bg-success" id="progress_bar_process" role="progressbar" style="width:0%; height:50px;">0%
+
+				</div>
+			</div>
+			<div id="uploaded_image" class="row mt-5"></div>
+			<img class="slitscan" id="slitscan" src="images/slitscan.png?[+ $timestamp +]">
+		</div>
+	</body>
+</html>
+
+<style>
+
+#drag_drop{
+	background-color : #f9f9f9;
+	border : #ccc 4px dashed;
+	line-height : 250px;
+	padding : 12px;
+	font-size : 24px;
+	text-align : center;
 }
--]
+
+</style>
+
+<script>
+
+function _(element)
+{
+	return document.getElementById(element);
+}
+
+_('drag_drop').ondragover = function(event)
+{
+	this.style.borderColor = '#333';
+	return false;
+}
+
+_('drag_drop').ondragleave = function(event)
+{
+	this.style.borderColor = '#ccc';
+	return false;
+}
+
+
+_('drag_drop').ondrop = function(event)
+{
+	event.preventDefault();
+
+	var form_data  = new FormData();
+	var error = '';
+	var drop_files = event.dataTransfer.files;
+	
+	if (drop_files.length <= 1) {
+		form_data.append("movie_file", drop_files[0]);
+	}
+	else {
+		error += '<div class="alert alert-danger"><b>only supports upload of one file</div>';
+	}
+
+	if(error != '')
+	{
+		_('uploaded_image').innerHTML = error;
+		_('drag_drop').style.borderColor = '#ccc';
+	}
+	else
+	{
+		_('progress_bar').style.display = 'block';
+		var ajax_request = new XMLHttpRequest();
+		ajax_request.open("post", "upload.epl");
+		ajax_request.upload.addEventListener('progress', function(event){
+			var percent_completed = Math.round((event.loaded / event.total) * 100);
+			_('progress_bar_process').style.width = percent_completed + '%';
+			_('progress_bar_process').innerHTML = percent_completed + '% completed';
+		});
+
+		ajax_request.addEventListener('load', function(event){
+			_('uploaded_image').innerHTML = '<div class="alert alert-success">Files Uploaded Successfully</div>';
+			_('drag_drop').style.borderColor = '#ccc';
+
+			var unique = Date.now();
+			_('slitscan').src = 'images/slitscan.png?' + unique;
+		});
+
+		ajax_request.send(form_data);
+	}
+}
+
+</script>
