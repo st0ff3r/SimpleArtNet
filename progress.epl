@@ -1,25 +1,16 @@
-#! /usr/bin/perl -w
-
+[- $http_headers_out{"Content-Type"} = "text/event-stream" -]
+[- $http_headers_out{"Cache-Control"} = "no-cache" -]
+[- 
 use IPC::ShareLite;
+use POSIX qw( ceil );
 use Data::Dumper;
 
-my $processing_progress = IPC::ShareLite->new(
+$processing_progress = IPC::ShareLite->new(
 	-key		=> 6455,
 	-create		=> 'yes',
 	-destroy	=> 'no'
 ) or die $!;
 
-my $progress = 0.0;
-my $last_progress = 0.0;
-
-while (1) {
-	$progress = $processing_progress->fetch;
-	if ($last_progress ne $progress) {
-		print $progress . "\n";
-	}
-	$last_progress = $progress;
-}
-
-1;
-
-__END__
+-]
+[- $progress = $processing_progress->fetch -]
+[$ if ($progress ne "") $][+ "data: " . ceil($progress) . "\n\n" +][$ else $][+ "data: TERMINATE\n\n" +][$ endif $]
