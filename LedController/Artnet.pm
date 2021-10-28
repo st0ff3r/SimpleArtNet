@@ -99,7 +99,10 @@ sub send_artnet {
 	my %p = @_;
 
 	for (1..$self->{num_universes}) {
-		my $packet = "Art-Net\x00\x00\x50\x00\x0e\x00\x00" . chr($_ - 1) . "\x00" . chr(2) . chr(0) . $self->{dmx_channels}[$_ - 1];
+		my $packet;
+		$packet = "Art-Net\x00\x00\x50\x00\x0e\x00\x00" . chr($_ - 1) . "\x00" . chr(2) . chr(0) . $self->{dmx_channels}[$_ - 1];
+		$self->{socket}->send($packet);
+		$packet = "Art-Net\x00\x00\x50\x00\x0e\x00\x00" . chr($_ - 1 + 3) . "\x00" . chr(2) . chr(0) . $self->{dmx_channels}[$_ - 1];
 		$self->{socket}->send($packet);
 	}
 	# send frames at precise time interval
