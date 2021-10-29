@@ -3,6 +3,7 @@ package LedController::Artnet;
 use Time::HiRes qw(usleep gettimeofday tv_interval);
 use POSIX qw( ceil );
 use Data::Dumper;
+use IO::Socket::INET;
 use Data::HexDump;
 
 my @gamma_table = (
