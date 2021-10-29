@@ -107,10 +107,10 @@ sub send_artnet {
 		$self->{socket}->send($packet);
 	}
 	# send frames at precise time interval
-	while (tv_interval($self->{last_time}) < (1 / $p{fps})) {
-		usleep 1;
-	}
-	$self->{last_time} = [gettimeofday];
+	my $time = [gettimeofday];
+	my $usleep_time = 1000_000 * ((1 / $p{fps}) - tv_interval($self->{last_time}, $time));
+	usleep($usleep_time >= 0 ? $usleep_time : 0);
+	$self->{last_time} = $time;
 }
 
 # private functions
