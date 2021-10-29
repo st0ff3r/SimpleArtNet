@@ -1,5 +1,6 @@
 #! /usr/bin/perl -w
 
+use Time::HiRes qw(usleep gettimeofday tv_interval);
 use IO::Socket::INET;
 use Config::Simple;
 use IPC::ShareLite;
@@ -28,6 +29,14 @@ my $share_intensity = IPC::ShareLite->new(
 	-destroy	=> 'yes'
 ) or die $!;
 
+# network connection
+my $artnet = new LedController::Artnet(
+	peer_addr => $config->param('peer_addr'),
+	pixel_format => $config->param('pixel_format') || 'GRBW',
+	num_channels_per_pixel => $config->param('num_channels_per_pixel') || 4,
+	num_pixels => $config->param('num_pixels') || 300
+);
+
 $SIG{USR1} = sub { $intensity = $share_intensity->fetch };
 $SIG{USR2} = sub {
 	$cross_fade_state = 'fade_out';
@@ -38,19 +47,17 @@ $SIG{USR2} = sub {
 	close FH;
 };
 
+# print fps stats
+my $stats_start_time = [gettimeofday];
+$SIG{HUP} = sub { 
+	my $avg_fps = $artnet->get_stats_frames_played / tv_interval($stats_start_time);
+	print "avg_fps: $avg_fps\n";
+};
+
 my $should_exit = 0;
-$SIG{HUP} = sub { $cross_fade_state = 'fade_out'; $should_exit = 1 };
 $SIG{TERM} = sub { $cross_fade_state = 'fade_out'; $should_exit = 1 };
 $SIG{INT} = sub { $cross_fade_state = 'fade_out'; $should_exit = 1 };
 $SIG{KILL} = sub { $cross_fade_state = 'fade_out'; $should_exit = 1 };
-
-# network connection
-my $artnet = new LedController::Artnet(
-	peer_addr => $config->param('peer_addr'),
-	pixel_format => $config->param('pixel_format') || 'GRBW',
-	num_channels_per_pixel => $config->param('num_channels_per_pixel') || 4,
-	num_pixels => $config->param('num_pixels') || 300
-);
 
 my @pixel_line;
 my ($red, $green, $blue);
@@ -102,7 +109,9 @@ while (1) {
 			);
 			$i++;
 		}
+#		my $t0 = [gettimeofday];
 		$artnet->send_artnet(fps => $config->param('fps'));
+#		print Dumper tv_interval($t0) ."\n";
 	}
 }
 

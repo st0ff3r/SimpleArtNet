@@ -50,6 +50,8 @@ sub new {
 	
 	$self->{last_time} = [gettimeofday];
 
+	$self->{stats_frames_played} = 0;
+
 	bless $self, $class;
 
 	return($self);
@@ -99,16 +101,25 @@ sub send_artnet {
 	my $self = shift;
 	my %p = @_;
 
+	my $packet;
 	for (1..$self->{num_universes}) {
-		my $packet;
+#		warn ($_ - 1) . "\n";
 		$packet = "Art-Net\x00\x00\x50\x00\x0e\x00\x00" . chr($_ - 1) . "\x00" . chr(2) . chr(0) . $self->{dmx_channels}[$_ - 1];
 		$self->{socket}->send($packet);
+	}
+	for (1..$self->{num_universes}) {
+#		warn ($_ - 1 + 3) . "\n";
 		$packet = "Art-Net\x00\x00\x50\x00\x0e\x00\x00" . chr($_ - 1 + 3) . "\x00" . chr(2) . chr(0) . $self->{dmx_channels}[$_ - 1];
 		$self->{socket}->send($packet);
 	}
+	# update stats
+	$self->{stats_frames_played}++;
 	# send frames at precise time interval
 	my $time = [gettimeofday];
 	my $usleep_time = 1000_000 * ((1 / $p{fps}) - tv_interval($self->{last_time}, $time));
+#	my ($seconds, $microseconds) = @$time;
+#	my ($last_seconds, $last_microseconds) = @{$self->{last_time}};
+#	warn "1 / fps: " . (1 / $p{fps}) . " last s: $last_seconds u: $last_microseconds now s: $seconds u: $microseconds interval: " . tv_interval($self->{last_time}, $time) . " usleep_time: $usleep_time\n";
 	usleep($usleep_time >= 0 ? $usleep_time : 0);
 	$self->{last_time} = $time;
 }
@@ -117,6 +128,12 @@ sub send_artnet {
 sub gamma_correction {
 	return $gamma_table[shift];
 }
+
+sub get_stats_frames_played {
+	my $self = shift;
+	return $self->{stats_frames_played};
+}
+
 
 1;
 

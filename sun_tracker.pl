@@ -66,24 +66,24 @@ sub do_calculation {
 	}
 	$_ = $now - $current_rise_end;
 	
-	warn "$state\n";
+#	warn "$state\n";
 	
 	if ($state eq 'up') {
-		print "sun up " . $sunrise_end->current($dt_now) . " down " . $sunset_start->next($dt_now) . " now " . $dt_now . "\n";
+#		print "sun up " . $sunrise_end->current($dt_now) . " down " . $sunset_start->next($dt_now) . " now " . $dt_now . "\n";
 		set_intensity(0.0);
 	}
 	elsif ($state eq 'setting') {
-		print "sun up " . $sunrise_end->next($dt_now) . " down " . $sunset_start->next($dt_now) . " now " . $dt_now . "\n";
+#		print "sun up " . $sunrise_end->next($dt_now) . " down " . $sunset_start->next($dt_now) . " now " . $dt_now . "\n";
 		my $next_set_end = $sunset_end->next($dt_now)->epoch;
 		my $dur = $next_set_end - $current_set_start;
 		set_intensity($elapsed_time * (1 / $dur));
 	}
 	elsif ($state eq 'down') {
-		print "sun up " . $sunrise_end->next($dt_now) . " down " . $sunset_start->next($dt_now) . " now " . $dt_now . "\n";
+#		print "sun up " . $sunrise_end->next($dt_now) . " down " . $sunset_start->next($dt_now) . " now " . $dt_now . "\n";
 		set_intensity(1.0);
 	}
 	elsif ($state eq 'rising') {
-		print "sun up " . $sunrise_end->next($dt_now) . " down " . $sunset_start->next($dt_now) . " now " . $dt_now . "\n";
+#		print "sun up " . $sunrise_end->next($dt_now) . " down " . $sunset_start->next($dt_now) . " now " . $dt_now . "\n";
 		my $next_rise_end = $sunrise_end->next($dt_now)->epoch;
 		my $dur = $next_rise_end - $current_rise_start;
 		set_intensity(1 - ($elapsed_time * (1 / $dur)));
@@ -93,7 +93,7 @@ sub do_calculation {
 sub set_intensity {
 	my $intensity = shift;
 	
-	warn "intensity: $intensity\n";
+#	warn "intensity: $intensity\n";
 
 	my $share = IPC::ShareLite->new(
 		-key		=> 6454,
