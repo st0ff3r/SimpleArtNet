@@ -106,11 +106,11 @@ sub send_artnet {
 	my $packet;
 	for (1..$self->{num_universes}) {
 		$packet = "Art-Net\x00\x00\x50\x00\x0e\x00\x00" . chr($_ - 1) . "\x00" . chr(2) . chr(0) . $self->{dmx_channels}[$_ - 1];
-		$self->add_artnet_to_queue($packet);
+		$self->add_artnet_to_queue(artnet => $packet, fps => $p{fps});
 	}
 	for (1..$self->{num_universes}) {
 		$packet = "Art-Net\x00\x00\x50\x00\x0e\x00\x00" . chr($_ - 1 + 3) . "\x00" . chr(2) . chr(0) . $self->{dmx_channels}[$_ - 1];
-		$self->add_artnet_to_queue($packet);
+		$self->add_artnet_to_queue(artnet => $packet, fps => $p{fps});
 	}
 	# wait for buffer to be emptied
 	while ($self->{redis}->keys('artnet:*') > (BUFFER_TIME * $p{fps})) {
@@ -125,19 +125,21 @@ sub gamma_correction {
 
 sub add_artnet_to_queue {
 	my $self = shift;
-	my $message = shift;
+	my %p = @_;
 
 	# Create the next id
 	my $id = $self->{redis}->incr(join(':', REDIS_QUEUE_NAME, 'id'));
 	my $job_id = join(':', REDIS_QUEUE_NAME, $id);
 
-	my %data = (topic => 'artnet', message => $message);
+	my %data = (topic => 'artnet', message => $p{artnet});
 
 	# Set the data first
 	$self->{redis}->hmset($job_id, %data);
 
 	# Then add the job to the queue
 	$self->{redis}->rpush(join(':', REDIS_QUEUE_NAME, 'queue'), $job_id);
+	
+	$self->{redis}->set('fps', $p{fps});
 }
 
 1;

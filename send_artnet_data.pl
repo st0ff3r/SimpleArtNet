@@ -18,6 +18,7 @@ my $new_artnet_data = '';
 my $intensity = 1.0;
 my $cross_fade_intensity = 0.0;
 my $cross_fade_state = 'fade_in';
+my $fps;
 
 my $cross_fade_time = $config->param('cross_fade_time') || 2;
 my $cross_fade_per_step = $cross_fade_time / $config->param('fps') / 2;
@@ -40,9 +41,12 @@ $SIG{USR1} = sub { $intensity = $share_intensity->fetch };
 $SIG{USR2} = sub {
 	$cross_fade_state = 'fade_out';
 	
-	warn "fading to new data\n";
+	print "fading to new data\n";
 	open(FH, '<', $artnet_data_file) or warn $!;
 	$new_artnet_data = do { local $/; <FH> };	# read all data into memory
+	$new_artnet_data =~ s/^(.*)//;
+	$fps = $1;
+	print "frame rate: $fps\n";
 	close FH;
 };
 
@@ -55,6 +59,9 @@ my @pixel_line;
 my ($red, $green, $blue);
 open(FH, '<', $artnet_data_file) or warn $!;
 $artnet_data = do { local $/; <FH> };	# read all data into memory
+$artnet_data =~ s/^(.*)//;
+$fps = $1;
+print "frame rate: $fps\n";
 close FH;
 while (1) {
 	foreach (split("\n", $artnet_data)) {
@@ -63,7 +70,7 @@ while (1) {
 			$cross_fade_intensity -= $cross_fade_per_step;
 		}
 		elsif ($cross_fade_state eq 'fade_out' && $cross_fade_intensity <= 0) {
-			warn "faded out\n";
+			print "faded out\n";
 			$cross_fade_intensity = 0.0;
 			$cross_fade_state = 'off';
 			if ($should_exit) {
@@ -72,6 +79,7 @@ while (1) {
 			else {
 				# switch to new data
 				$artnet_data = $new_artnet_data;
+				
 				$cross_fade_state = 'fade_in';
 				last;
 			}
@@ -80,7 +88,7 @@ while (1) {
 			$cross_fade_intensity += $cross_fade_per_step;
 		}
 		elsif ($cross_fade_state eq 'fade_in' && $cross_fade_intensity >= 1.0) {
-			warn "faded in\n";
+			print "faded in\n";
 			$cross_fade_intensity = 1.0;
 			$cross_fade_state = 'on';
 		}
@@ -101,7 +109,7 @@ while (1) {
 			);
 			$i++;
 		}
-		$artnet->send_artnet(fps => $config->param('fps'));
+		$artnet->send_artnet(fps => $fps);
 	}
 }
 

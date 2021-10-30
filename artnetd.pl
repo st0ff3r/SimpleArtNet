@@ -54,7 +54,9 @@ while (1) {
 	}
 	$stats_frames_played++;
 
-	my $usleep_time = 1000_000 * ((1 / $config->param('fps')) - tv_interval($time));
+	my $fps = $redis->get('fps');
+
+	my $usleep_time = 1000_000 * ((1 / $fps) - tv_interval($time));
 	usleep($usleep_time >= 0 ? $usleep_time : 0);
 }
 

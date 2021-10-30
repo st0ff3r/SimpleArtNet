@@ -8,8 +8,6 @@ use LedController;
 
 $timestamp = int (gettimeofday * 1000);
 -]
-
-[+ warn Dumper $fdat{movie_file} +]
 [- 
 if (defined $fdat{movie_file}) {
 	($fh, $temp_file) = tempfile( CLEANUP => 0 );

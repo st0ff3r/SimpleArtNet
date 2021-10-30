@@ -40,18 +40,22 @@ sub movie_to_artnet {
 	my $movie_file = $p{movie_file};
 	my $artnet_data_file = $p{artnet_data_file};
 	my $loop_forth_and_back = $p{loop_forth_and_back} || undef;
-	my $fps = $p{fps} || 25;
+	
+#	warn "ffprobe -v error -select_streams v -of default=noprint_wrappers=1:nokey=1 -show_entries stream=r_frame_rate $movie_file 2>&1";
+	my $fps = `ffprobe -v error -select_streams v -of default=noprint_wrappers=1:nokey=1 -show_entries stream=r_frame_rate $movie_file 2>&1`;
+	$fps = eval($fps);
+	warn "detected frame rate: $fps\n";
 	
 	my $temp_dir = tempdir( CLEANUP => 0 );
 
 	# convert movie to images
-	warn(	"ffmpeg -i " . $movie_file . 
-				qq[ -vf "scale=] . $config->param('num_pixels') . qq[:-2:flags=neighbor,crop=] . $config->param('num_pixels') . qq[:1:0:" ] .
-				"-r " . $config->param('fps') . " " . 
-				$temp_dir . "/%08d.png");
+#	warn(	"ffmpeg -i " . $movie_file . 
+#				qq[ -vf "scale=] . $config->param('num_pixels') . qq[:-2:flags=neighbor,crop=] . $config->param('num_pixels') . qq[:1:0:" ] .
+#				"-r " . $fps . " " . 
+#				$temp_dir . "/%08d.png");
 	if (system(	"ffmpeg -i " . $movie_file . 
 				qq[ -vf "scale=] . $config->param('num_pixels') . qq[:-2:flags=neighbor,crop=] . $config->param('num_pixels') . qq[:1:0:" ] .
-				"-r " . $config->param('fps') . " " . 
+				"-r " . $fps . " " . 
 				$temp_dir . "/%08d.png") != 0) {
 		warn "system failed: $?";
 	}
@@ -71,6 +75,7 @@ sub movie_to_artnet {
 	my ($fh, $temp_file) = tempfile( CLEANUP => 0 );
 	my ($red, $green, $blue);
 
+	print $fh "$fps\n";
 	@images = sort { $a cmp $b } @images;
 	my $i = 0;
 	my $progress_inc = 50.0 / (@images + ($loop_forth_and_back ? @images - 2 : 0));
