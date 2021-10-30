@@ -108,10 +108,10 @@ sub send_artnet {
 		$packet = "Art-Net\x00\x00\x50\x00\x0e\x00\x00" . chr($_ - 1) . "\x00" . chr(2) . chr(0) . $self->{dmx_channels}[$_ - 1];
 		$self->add_artnet_to_queue(artnet => $packet, fps => $p{fps});
 	}
-	for (1..$self->{num_universes}) {
-		$packet = "Art-Net\x00\x00\x50\x00\x0e\x00\x00" . chr($_ - 1 + 3) . "\x00" . chr(2) . chr(0) . $self->{dmx_channels}[$_ - 1];
-		$self->add_artnet_to_queue(artnet => $packet, fps => $p{fps});
-	}
+#	for (1..$self->{num_universes}) {
+#		$packet = "Art-Net\x00\x00\x50\x00\x0e\x00\x00" . chr($_ - 1 + 3) . "\x00" . chr(2) . chr(0) . $self->{dmx_channels}[$_ - 1];
+#		$self->add_artnet_to_queue(artnet => $packet, fps => $p{fps});
+#	}
 	# wait for buffer to be emptied
 	while ($self->{redis}->keys('artnet:*') > (BUFFER_TIME * $p{fps})) {
 		usleep 1000_000 * BUFFER_TIME / 2;
