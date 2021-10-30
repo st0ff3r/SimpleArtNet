@@ -21,7 +21,7 @@ my $cross_fade_state = 'fade_in';
 my $fps;
 
 my $cross_fade_time = $config->param('cross_fade_time') || 2;
-my $cross_fade_per_step = $cross_fade_time / $config->param('fps') / 2;
+my $cross_fade_per_step;
 
 my $share_intensity = IPC::ShareLite->new(
 	-key		=> 6454,
@@ -62,6 +62,7 @@ $artnet_data = do { local $/; <FH> };	# read all data into memory
 $artnet_data =~ s/^(.*)//;
 $fps = $1;
 print "frame rate: $fps\n";
+$cross_fade_per_step = $cross_fade_time / $fps / 2;
 close FH;
 while (1) {
 	foreach (split("\n", $artnet_data)) {
