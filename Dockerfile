@@ -38,6 +38,7 @@ RUN apt-get update && apt-get install -y \
 	sudo \
 	screen \
 	rsync \
+	redis \
 	apache2 \
 	apache2-bin \
 	apache2-doc \
@@ -53,6 +54,7 @@ RUN apt-get update && apt-get install -y \
 	libipc-sharelite-perl \
 	libdatetime-event-sunrise-perl \
 	libdata-hexdump-perl \
+	libredis-perl \
 	ffmpeg \
 	imagemagick \
 	tcpdump
@@ -72,6 +74,7 @@ COPY ./artnet.conf /led_controller/
 
 COPY ./LedController.pm /led_controller/
 COPY ./LedController/Artnet.pm /led_controller/LedController/
+COPY ./artnetd.pl /led_controller/
 COPY ./send_artnet_data.pl /led_controller/
 COPY ./movie_to_artnet.pl /led_controller/
 COPY ./led_control.pl /led_controller/

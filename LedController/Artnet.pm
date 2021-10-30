@@ -1,10 +1,17 @@
 package LedController::Artnet;
 
+use strict;
 use Time::HiRes qw(usleep gettimeofday tv_interval);
 use POSIX qw( ceil );
 use Data::Dumper;
-use IO::Socket::INET;
+use Redis;
 use Data::HexDump;
+
+use constant REDIS_HOST => '127.0.0.1';
+use constant REDIS_PORT => '6379';
+use constant REDIS_QUEUE_NAME => 'artnet';
+
+use constant BUFFER_TIME => 5;
 
 my @gamma_table = (
 	0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
@@ -25,9 +32,6 @@ my @gamma_table = (
 	215,218,220,223,225,228,231,233,236,239,241,244,247,249,252,255
 );
 
-# flush after every write
-$| = 1;
-
 sub new {
 	my $class = shift;
 	my %p = @_;
@@ -37,21 +41,19 @@ sub new {
 	$self->{pixel_format} = $p{pixel_format};
 	$self->{num_pixels} = $p{num_pixels};
 
-	# network connection
-	$self->{socket} = new IO::Socket::INET (
-		PeerAddr	=> $p{peer_addr} . ":6454",
-		Proto		=> 'udp'
-	) || die "ERROR in socket creation : $!\n";
+	my $redis_host = REDIS_HOST;
+	my $redis_port = REDIS_PORT;
+	$self->{redis} = Redis->new(
+		server => "$redis_host:$redis_port",
+	) || warn $!;
+
+	my $queue_name = 'artnet';
 
 	$self->{num_universes} = ceil($self->{num_pixels} * $self->{num_channels_per_pixel} / 512);
 	for (1..$self->{num_universes}) {
 		$self->{dmx_channels}[$_ - 1] = chr(0) x 512;
 	}
 	
-	$self->{last_time} = [gettimeofday];
-
-	$self->{stats_frames_played} = 0;
-
 	bless $self, $class;
 
 	return($self);
@@ -103,25 +105,17 @@ sub send_artnet {
 
 	my $packet;
 	for (1..$self->{num_universes}) {
-#		warn ($_ - 1) . "\n";
 		$packet = "Art-Net\x00\x00\x50\x00\x0e\x00\x00" . chr($_ - 1) . "\x00" . chr(2) . chr(0) . $self->{dmx_channels}[$_ - 1];
-		$self->{socket}->send($packet);
+		$self->add_artnet_to_queue($packet);
 	}
 	for (1..$self->{num_universes}) {
-#		warn ($_ - 1 + 3) . "\n";
 		$packet = "Art-Net\x00\x00\x50\x00\x0e\x00\x00" . chr($_ - 1 + 3) . "\x00" . chr(2) . chr(0) . $self->{dmx_channels}[$_ - 1];
-		$self->{socket}->send($packet);
+		$self->add_artnet_to_queue($packet);
 	}
-	# update stats
-	$self->{stats_frames_played}++;
-	# send frames at precise time interval
-	my $time = [gettimeofday];
-	my $usleep_time = 1000_000 * ((1 / $p{fps}) - tv_interval($self->{last_time}, $time));
-#	my ($seconds, $microseconds) = @$time;
-#	my ($last_seconds, $last_microseconds) = @{$self->{last_time}};
-#	warn "1 / fps: " . (1 / $p{fps}) . " last s: $last_seconds u: $last_microseconds now s: $seconds u: $microseconds interval: " . tv_interval($self->{last_time}, $time) . " usleep_time: $usleep_time\n";
-	usleep($usleep_time >= 0 ? $usleep_time : 0);
-	$self->{last_time} = $time;
+	# wait for buffer to be emptied
+	while ($self->{redis}->keys('artnet:*') > (BUFFER_TIME * $p{fps})) {
+		usleep 1000_000 * BUFFER_TIME / 2;
+	}
 }
 
 # private functions
@@ -129,11 +123,22 @@ sub gamma_correction {
 	return $gamma_table[shift];
 }
 
-sub get_stats_frames_played {
+sub add_artnet_to_queue {
 	my $self = shift;
-	return $self->{stats_frames_played};
-}
+	my $message = shift;
 
+	# Create the next id
+	my $id = $self->{redis}->incr(join(':', REDIS_QUEUE_NAME, 'id'));
+	my $job_id = join(':', REDIS_QUEUE_NAME, $id);
+
+	my %data = (topic => 'artnet', message => $message);
+
+	# Set the data first
+	$self->{redis}->hmset($job_id, %data);
+
+	# Then add the job to the queue
+	$self->{redis}->rpush(join(':', REDIS_QUEUE_NAME, 'queue'), $job_id);
+}
 
 1;
 

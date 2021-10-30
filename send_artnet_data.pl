@@ -1,7 +1,6 @@
 #! /usr/bin/perl -w
 
 use Time::HiRes qw(usleep gettimeofday tv_interval);
-use IO::Socket::INET;
 use Config::Simple;
 use IPC::ShareLite;
 use Data::Dumper;
@@ -45,13 +44,6 @@ $SIG{USR2} = sub {
 	open(FH, '<', $artnet_data_file) or warn $!;
 	$new_artnet_data = do { local $/; <FH> };	# read all data into memory
 	close FH;
-};
-
-# print fps stats
-my $stats_start_time = [gettimeofday];
-$SIG{HUP} = sub { 
-	my $avg_fps = $artnet->get_stats_frames_played / tv_interval($stats_start_time);
-	print "avg_fps: $avg_fps\n";
 };
 
 my $should_exit = 0;
@@ -109,9 +101,7 @@ while (1) {
 			);
 			$i++;
 		}
-#		my $t0 = [gettimeofday];
 		$artnet->send_artnet(fps => $config->param('fps'));
-#		print Dumper tv_interval($t0) ."\n";
 	}
 }
 
