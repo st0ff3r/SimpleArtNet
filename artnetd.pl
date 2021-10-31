@@ -24,11 +24,11 @@ my $redis = Redis->new(
 my $queue_name = 'artnet';
 my $timeout		= 86400;
 
+my @stats = ();
+
 # print fps stats
-my $stats_start_time = [gettimeofday];
-my $stats_frames_played = 0;
 $SIG{HUP} = sub { 
-	my $avg_fps = $stats_frames_played / tv_interval($stats_start_time);
+	my $avg_fps = @stats / tv_interval($stats[0], $stats[-1]);
 	print "avg_fps: $avg_fps\n";
 };
 
@@ -52,9 +52,13 @@ while (1) {
 		# remove data for job
 		$redis->del($job_id);
 	}
-	$stats_frames_played++;
-
+	
 	my $fps = $redis->get('fps');
+
+	if (@stats > $fps * 60) {	# a time window of a minute for stats
+		shift @stats;
+	}
+	push @stats, $time;
 
 	my $usleep_time = 1000_000 * ((1 / $fps) - tv_interval($time));
 	usleep($usleep_time >= 0 ? $usleep_time : 0);
