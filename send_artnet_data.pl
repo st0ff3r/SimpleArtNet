@@ -47,7 +47,7 @@ $SIG{USR2} = sub {
 	$new_artnet_data =~ s/^(.*)//;
 	$fps = $1;
 	print "frame rate: $fps\n";
-	$cross_fade_per_step = $cross_fade_time * $fps / 2;
+	$cross_fade_per_step = 1 / ($cross_fade_time * $fps) / 2;
 	close FH;
 };
 
@@ -63,7 +63,7 @@ $artnet_data = do { local $/; <FH> };	# read all data into memory
 $artnet_data =~ s/^(.*)//;
 $fps = $1;
 print "frame rate: $fps\n";
-$cross_fade_per_step = $cross_fade_time * $fps / 2;
+$cross_fade_per_step = 1 / ($cross_fade_time * $fps) / 2;
 close FH;
 while (1) {
 	foreach (split("\n", $artnet_data)) {
