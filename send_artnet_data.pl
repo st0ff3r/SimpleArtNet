@@ -47,6 +47,7 @@ $SIG{USR2} = sub {
 	$new_artnet_data =~ s/^(.*)//;
 	$fps = $1;
 	print "frame rate: $fps\n";
+	$cross_fade_per_step = $cross_fade_time / $fps / 2;
 	close FH;
 };
 
