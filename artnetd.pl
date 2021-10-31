@@ -13,7 +13,7 @@ use constant REDIS_QUEUE_NAME => 'artnet';
 
 use constant ARTNET_CONF => 'artnet.conf';
 
-use constant PID_I => 1000_000;
+use constant PID_I => 1000;
 
 my $config = new Config::Simple(ARTNET_CONF);
 
