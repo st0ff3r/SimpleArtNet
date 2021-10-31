@@ -5,6 +5,7 @@ use Time::HiRes qw(usleep gettimeofday tv_interval);
 use POSIX qw( ceil );
 use Data::Dumper;
 use Redis;
+use Storable qw(freeze thaw);
 use Data::HexDump;
 
 use constant REDIS_HOST => '127.0.0.1';
@@ -104,10 +105,12 @@ sub send_artnet {
 	my %p = @_;
 
 	my $packet;
+	my $frame = [];
 	for (1..$self->{num_universes}) {
 		$packet = "Art-Net\x00\x00\x50\x00\x0e\x00\x00" . chr($_ - 1) . "\x00" . chr(2) . chr(0) . $self->{dmx_channels}[$_ - 1];
-		$self->add_artnet_to_queue(artnet => $packet, fps => $p{fps});
+		push @$frame, $packet;
 	}
+	$self->add_artnet_to_queue(artnet => freeze($frame), fps => $p{fps});
 #	for (1..$self->{num_universes}) {
 #		$packet = "Art-Net\x00\x00\x50\x00\x0e\x00\x00" . chr($_ - 1 + 3) . "\x00" . chr(2) . chr(0) . $self->{dmx_channels}[$_ - 1];
 #		$self->add_artnet_to_queue(artnet => $packet, fps => $p{fps});

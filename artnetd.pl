@@ -4,6 +4,7 @@ use strict;
 use Config::Simple;
 use Time::HiRes qw(usleep gettimeofday tv_interval);
 use Redis;
+use Storable qw(freeze thaw);
 use IO::Socket::INET;
 use Data::Dumper;
 
@@ -59,7 +60,10 @@ while (1) {
 	if ($job_id) {
 	
 		my %data = $redis->hgetall($job_id);
-		$socket->send($data{message});
+		my $frame = thaw($data{message});
+		foreach (@$frame) {
+			$socket->send($_);
+		}
 
 		# remove data for job
 		$redis->del($job_id);
