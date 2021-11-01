@@ -118,9 +118,9 @@ _('drag_drop').ondrop = function(event)
 		var ajax_request = new XMLHttpRequest();
 		ajax_request.open("post", "upload.epl");
 		ajax_request.upload.addEventListener('progress', function(event){
-			var percent_completed = Math.round((event.loaded / event.total) * 100);
+			var percent_completed = Math.round((event.loaded / event.total) * 50);
 			_('progress_bar_process').style.width = percent_completed + '%';
-			if (percent_completed < 100) {
+			if (percent_completed < 50) {
 				_('progress_bar_process').innerHTML = percent_completed + '% completed';
 			}
 			else {
@@ -139,26 +139,16 @@ _('drag_drop').ondrop = function(event)
 			source = new EventSource('progress.pl');
 			source.addEventListener('message', function(event) {
 //				var result = JSON.parse(event.data);
-//				console.log(event.data);
-
-//				document.getElementById("myprogress").style.width = result.progress+"%";
-
-//				if (event.data == "TERMINATE") {
-//					source.close();
-//					document.getElementById("myprogressbar").style.display = "none";
-//				}
-			}, false);
-			source.onmessage = function (event) {
 				console.log(event.data);
+
+				_('progress_bar_process').style.width = event.data + '%';
+
 				if (event.data == "TERMINATE") {
 					source.close();
+					_('progress_bar').style.display = 'none'; 
+					_('uploaded_image').style.display = 'none'; 
 				}
-			};
-
-			setTimeout(function() {
-				_('progress_bar').style.display = 'none'; 
-				_('uploaded_image').style.display = 'none'; 
-			}, 3000);
+			}, false);
 		});
 
 		ajax_request.send(form_data);

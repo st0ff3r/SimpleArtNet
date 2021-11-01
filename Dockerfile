@@ -68,6 +68,7 @@ RUN chown -R www-data:www-data /var/www/led_controller
 
 RUN PERL_MM_USE_DEFAULT=1 cpan install Proc::Killall
 RUN PERL_MM_USE_DEFAULT=1 cpan install IO::Async::Timer::Periodic
+RUN a2dismod -f deflate
 
 COPY ./docker-entrypoint.sh /docker-entrypoint.sh
 COPY ./artnet.conf /led_controller/
