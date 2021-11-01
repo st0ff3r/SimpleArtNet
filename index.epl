@@ -121,10 +121,10 @@ _('drag_drop').ondrop = function(event)
 			var percent_completed = Math.round((event.loaded / event.total) * 50);
 			_('progress_bar_process').style.width = percent_completed + '%';
 			if (percent_completed < 50) {
-				_('progress_bar_process').innerHTML = percent_completed + '% completed';
+				_('progress_bar_process').innerHTML = percent_completed + '% uploaded';
 			}
 			else {
-				_('progress_bar_process').innerHTML = percent_completed + '% completed - processing...';
+				_('progress_bar_process').innerHTML = percent_completed + '% processing';
 			}
 		});
 
@@ -134,22 +134,23 @@ _('drag_drop').ondrop = function(event)
 
 			var unique = Date.now();
 			_('slitscan').src = 'images/slitscan.png?' + unique;
-			
-
-			source = new EventSource('progress.pl');
-			source.addEventListener('message', function(event) {
-//				var result = JSON.parse(event.data);
-				console.log(event.data);
-
-				_('progress_bar_process').style.width = event.data + '%';
-
-				if (event.data == "TERMINATE") {
-					source.close();
-					_('progress_bar').style.display = 'none'; 
-					_('uploaded_image').style.display = 'none'; 
-				}
-			}, false);
 		});
+		
+		source = new EventSource('progress.pl');
+		source.addEventListener('message', function(event) {
+			var percent_completed = Math.round(50 + (event.data / 2));
+			_('progress_bar_process').style.width = percent_completed + '%';
+			_('progress_bar_process').innerHTML = percent_completed + '% processing';
+
+			if (event.data == "TERMINATE") {
+				source.close();
+				_('progress_bar').style.display = 'none';
+				_('uploaded_image').style.display = 'none';
+				// set to 0 for next upload
+				_('progress_bar_process').style.width = 0.0 + '%';
+				_('progress_bar_process').innerHTML = '';
+			}
+		}, false);
 
 		ajax_request.send(form_data);
 	}

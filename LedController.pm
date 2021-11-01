@@ -23,7 +23,7 @@ sub new {
 	$self->{processing_progress} = IPC::ShareLite->new(
 		-key		=> 6455,
 		-create		=> 'yes',
-		-destroy	=> 'yes'
+		-destroy	=> 'no'
 	) or die $!;
 	
 	$self->{processing_progress}->store(0.0);

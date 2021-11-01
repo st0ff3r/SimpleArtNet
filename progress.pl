@@ -16,12 +16,13 @@ print "Connection: keep-alive\n\n";
 
 while (1) {
 	my $progress = $processing_progress->fetch;
-	warn Dumper $progress;
-	if ($progress ne "") {
+	if ($progress < 99) {
 		print("data: " . ceil($progress) . "\n\n");
 	}
 	else {
+		print("data: 100\n\n");
 		print("data: TERMINATE\n\n");
+		$processing_progress->store(0.0);
 		exit;
 	}
 }
