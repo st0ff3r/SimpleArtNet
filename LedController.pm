@@ -129,6 +129,14 @@ sub movie_to_slitscan {
 	close(IMAGE);
 }
 
+sub cleanup_temp_files {
+	my $self = shift;
+	warn "cleaning up temp files\n";
+	unlink($temp_file);
+	unlink($movie_file);
+	remove_tree($temp_dir);
+}
+
 1;
 
 __END__
