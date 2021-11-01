@@ -29,7 +29,9 @@ $timestamp = int (gettimeofday * 1000);
 									<div class="progress-bar bg-success" id="progress_bar_process" role="progressbar" style="width:0%; height:50px;">0%</div>
 								</div>
 								<div id="uploaded_image" class="row mt-5"></div>
-							<img class="slitscan" id="slitscan" src="images/slitscan.png?[+ $timestamp +]">
+								<div class="slitscan-div">
+									<img class="slitscan" id="slitscan" src="images/slitscan.png?[+ $timestamp +]">
+								</div>
 						</div>
 						</div>
 						<div class="col-md-3">&nbsp;</div>
