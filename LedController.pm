@@ -68,7 +68,7 @@ sub movie_to_artnet {
 			$movie_converted = $1 * 60 * 60 + $2 * 60 + $3 + $4;
 			$movie_convertion_progress = $movie_converted / $movie_duration;
 			$self->{processing_progress}->store($movie_convertion_progress * 50);
-			warn "progress: $movie_convertion_progress\n";
+			warn "ffmpeg progress: $movie_convertion_progress\n";
 		}
 	}
 	
