@@ -11,6 +11,7 @@ use IPC::ShareLite;
 use Data::Dumper;
 
 use constant ARTNET_CONF => '/led_controller/artnet.conf';
+use constant SLITSCAN_IMAGE_MAX_HEIGHT => 10000;
 
 my $config = new Config::Simple(ARTNET_CONF);
 
@@ -68,7 +69,7 @@ sub movie_to_artnet {
 			$movie_converted = $1 * 60 * 60 + $2 * 60 + $3 + $4;
 			$movie_convertion_progress = $movie_converted / $movie_duration;
 			$self->{processing_progress}->store($movie_convertion_progress * 50);
-			warn "ffmpeg progress: $movie_convertion_progress\n";
+#			warn "ffmpeg progress: $movie_convertion_progress\n";
 		}
 	}
 	
@@ -78,7 +79,11 @@ sub movie_to_artnet {
 	closedir DIR;
 
 	# prepare slitscan image
-	$self->{slitscan_image}->Set(size=>$config->param('num_pixels') . 'x' . scalar(@images));
+	my $slitscan_image_height = scalar(@images);
+	if ($slitscan_image_height > SLITSCAN_IMAGE_MAX_HEIGHT) {	# crop image height to SLITSCAN_IMAGE_MAX_HEIGHT
+		$slitscan_image_height = SLITSCAN_IMAGE_MAX_HEIGHT;
+	}
+	$self->{slitscan_image}->Set(size=>$config->param('num_pixels') . 'x' . $slitscan_image_height);
 	$self->{slitscan_image}->ReadImage('canvas:white');
 
 	my ($image_size_x, $image_size_y);
@@ -98,8 +103,9 @@ sub movie_to_artnet {
 		for $x (0..$image_size_x) {
 			($red, $green, $blue) = $p->GetPixel( 'x' => $x, 'y' => int($image_size_y / 2) );
 			print $fh sprintf("%02x", int($red * 255)) . sprintf("%02x", int($green * 255)) . sprintf("%02x", int($blue * 255));
-			
-			$self->{slitscan_image}->SetPixel(x => $x, y => $i, color=> [$red, $green, $blue]);
+			if ($i <= $slitscan_image_height) {
+				$self->{slitscan_image}->SetPixel(x => $x, y => $i, color=> [$red, $green, $blue]);
+			}
 		}
 		print $fh "\n";
 		$i++;
