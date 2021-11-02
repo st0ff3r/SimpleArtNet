@@ -87,6 +87,7 @@ COPY ./startup.pl /etc/apache2/perl/
 COPY ./index.epl /var/www/led_controller/
 COPY ./upload.pl /var/www/led_controller/
 COPY ./progress.pl /var/www/led_controller/
+COPY ./bootstrap.min.css /var/www/led_controller/
 
 CMD /docker-entrypoint.sh
 
