@@ -116,7 +116,7 @@ _('drag_drop').ondrop = function(event)
 	{
 		_('progress_bar').style.display = 'block';
 		var ajax_request = new XMLHttpRequest();
-		ajax_request.open("post", "upload.epl");
+		ajax_request.open("post", "upload.pl");
 
 		ajax_request.addEventListener('load', function(event) {
 			_('uploaded_image').innerHTML = '';
