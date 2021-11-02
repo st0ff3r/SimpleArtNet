@@ -124,7 +124,7 @@ sub send_artnet {
 	for (1..$self->{num_universes}) {
 		warn "universe: " . ($_ - 1) . "\n";
 		my $num_channels_per_pixel = $self->{num_channels_per_pixel};
-		my $mirrored_dmx_channels = join(q[], reverse($self->{dmx_channels}[$_ - 1] =~ /([\x00-\x7F]{$num_channels_per_pixel})/g));
+		my $mirrored_dmx_channels = join(q[], reverse($self->{dmx_channels}[$_ - 1] =~ /(.{$num_channels_per_pixel})/gs));
 		warn HexDump($mirrored_dmx_channels);
 		$packet = "Art-Net\x00\x00\x50\x00\x0e\x00\x00" . chr($_ - 1 + UNIVERSES_PER_PORT) . "\x00" . chr(2) . chr(0) . $mirrored_dmx_channels;
 		push @$frame, $packet;
