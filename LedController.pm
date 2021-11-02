@@ -44,22 +44,33 @@ sub movie_to_artnet {
 #	warn "ffprobe -v error -select_streams v -of default=noprint_wrappers=1:nokey=1 -show_entries stream=r_frame_rate $movie_file 2>&1";
 	my $fps = `ffprobe -v error -select_streams v -of default=noprint_wrappers=1:nokey=1 -show_entries stream=r_frame_rate $movie_file 2>&1`;
 	$fps = eval($fps);
-	warn "detected frame rate: $fps\n";
 	
 	my $temp_dir = tempdir( CLEANUP => 0 );
+	my $movie_duration;
+	my $movie_converted;
+	my $movie_convertion_progress;
 
 	# convert movie to images
 #	warn(	"ffmpeg -i " . $movie_file . 
 #				qq[ -vf "scale=] . $config->param('num_pixels') . qq[:-2:flags=neighbor,crop=] . $config->param('num_pixels') . qq[:1:0:" ] .
 #				"-r " . $fps . " " . 
 #				$temp_dir . "/%08d.png");
-	if (system(	"ffmpeg -i " . $movie_file . 
-				qq[ -vf "scale=] . $config->param('num_pixels') . qq[:-2:flags=neighbor,crop=] . $config->param('num_pixels') . qq[:1:0:" ] .
+	open(FFMPEG, "ffmpeg -i " . $movie_file . 
+				qq[ -progress - -vf "scale=] . $config->param('num_pixels') . qq[:-2:flags=neighbor,crop=] . $config->param('num_pixels') . qq[:1:0:" ] .
 				"-r " . $fps . " " . 
-				$temp_dir . "/%08d.png") != 0) {
-		warn "system failed: $?";
+				$temp_dir . "/%08d.png 2>&1 |");
+	# read and parse output from ffmpeg and update progress stats
+	while (<FFMPEG>) {
+		if (/Duration: (\d{2}):(\d{2}):(\d{2})(\.\d+),/) {
+			$movie_duration = $1 * 60 * 60 + $2 * 60 + $3 + $4;
+		}
+		if (/out_time=(\d{2}):(\d{2}):(\d{2})(\.\d+)/) {
+			$movie_converted = $1 * 60 * 60 + $2 * 60 + $3 + $4;
+			$movie_convertion_progress = $movie_converted / $movie_duration;
+			$self->{processing_progress}->store($movie_convertion_progress * 50);
+			warn "progress: $movie_convertion_progress\n";
+		}
 	}
-	$self->{processing_progress}->store(50.0);	# halfway done
 	
 	# get all images
 	opendir(DIR, $temp_dir) || die "can't opendir $temp_dir: $!";

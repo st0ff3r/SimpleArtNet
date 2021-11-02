@@ -130,7 +130,10 @@ _('drag_drop').ondrop = function(event)
 
 		ajax_request.addEventListener('load', function(event) {
 //			_('uploaded_image').innerHTML = '<div class="alert alert-success">Files Uploaded Successfully</div>';
-//			_('drag_drop').style.borderColor = '#ccc';
+			_('uploaded_image').innerHTML = '';
+			_('drag_drop').style.borderColor = '#ccc';
+			var unique = Date.now();
+			_('slitscan').src = 'images/slitscan.png?' + unique;
 		});
 		
 		source = new EventSource('progress.pl');
@@ -142,14 +145,10 @@ _('drag_drop').ondrop = function(event)
 			if (event.data == "TERMINATE") {
 				source.close();
 				_('progress_bar').style.display = 'none';
-				_('uploaded_image').style.display = 'none';
+//				_('uploaded_image').style.display = 'none';
 				// set to 0 for next upload
 				_('progress_bar_process').style.width = 0.0 + '%';
 				_('progress_bar_process').innerHTML = '';
-				
-
-				var unique = Date.now();
-				_('slitscan').src = 'images/slitscan.png?' + unique;
 			}
 		}, false);
 

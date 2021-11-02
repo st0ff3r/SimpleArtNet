@@ -53,6 +53,7 @@ RUN apt-get update && apt-get install -y \
 	libimage-size-perl \
 	libipc-sharelite-perl \
 	libdatetime-event-sunrise-perl \
+	libdatetime-format-strptime-perl \
 	libdata-hexdump-perl \
 	libredis-perl \
 	ffmpeg \
