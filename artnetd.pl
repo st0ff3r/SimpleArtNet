@@ -56,8 +56,9 @@ my $socket = new IO::Socket::INET (
 
 while (1) {
 	my $time = [gettimeofday];
+	my ($queue, $job_id);
 
-	my ($queue, $job_id) = $redis->blpop(join(':', REDIS_QUEUE_1_NAME, 'queue'), $timeout);
+	($queue, $job_id) = $redis->blpop(join(':', REDIS_QUEUE_1_NAME, 'queue'), $timeout);
 	if ($job_id) {
 	
 		my %data = $redis->hgetall($job_id);
@@ -70,7 +71,7 @@ while (1) {
 		$redis->del($job_id);
 	}
 	# for the mirrored data
-	my ($queue, $job_id) = $redis->blpop(join(':', REDIS_QUEUE_2_NAME, 'queue'), $timeout);
+	($queue, $job_id) = $redis->blpop(join(':', REDIS_QUEUE_2_NAME, 'queue'), $timeout);
 	if ($job_id) {
 	
 		my %data = $redis->hgetall($job_id);
