@@ -108,22 +108,29 @@ sub send_artnet {
 	my $packet;
 	my $frame;
 	
+	warn "dmx_channels\n";
 	$frame = [];
 	for (1..$self->{num_universes}) {
+		warn "universe: " . ($_ - 1) . "\n";
+		warn HexDump($self->{dmx_channels}[$_ - 1]);
 		$packet = "Art-Net\x00\x00\x50\x00\x0e\x00\x00" . chr($_ - 1) . "\x00" . chr(2) . chr(0) . $self->{dmx_channels}[$_ - 1];
 		push @$frame, $packet;
 	}
 	$self->add_artnet_to_queue(queue => REDIS_QUEUE_1_NAME, artnet => freeze($frame), fps => $p{fps});
 	
 	# send mirrored data to other port
+	warn "mirrored_dmx_channels\n";
 	$frame = [];
 	for (1..$self->{num_universes}) {
+		warn "universe: " . ($_ - 1) . "\n";
 		my $num_channels_per_pixel = $self->{num_channels_per_pixel};
-		my $mirrored_dmx_channels = join(q[], reverse($self->{dmx_channels}[$_ - 1] =~ /(.{$num_channels_per_pixel})/g));
+		my $mirrored_dmx_channels = join(q[], reverse($self->{dmx_channels}[$_ - 1] =~ /([\x00-\x7F]{$num_channels_per_pixel})/g));
+		warn HexDump($mirrored_dmx_channels);
 		$packet = "Art-Net\x00\x00\x50\x00\x0e\x00\x00" . chr($_ - 1 + UNIVERSES_PER_PORT) . "\x00" . chr(2) . chr(0) . $mirrored_dmx_channels;
 		push @$frame, $packet;
 	}
 	$self->add_artnet_to_queue(queue => REDIS_QUEUE_2_NAME, artnet => freeze($frame), fps => $p{fps});
+	warn "\n\n";
 	
 	# wait for buffer to be emptied
 	while ($self->{redis}->keys(REDIS_QUEUE_1_NAME . ':*') > (BUFFER_TIME * $p{fps})) {
