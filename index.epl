@@ -117,19 +117,8 @@ _('drag_drop').ondrop = function(event)
 		_('progress_bar').style.display = 'block';
 		var ajax_request = new XMLHttpRequest();
 		ajax_request.open("post", "upload.epl");
-		ajax_request.upload.addEventListener('progress', function(event){
-			var percent_completed = Math.round((event.loaded / event.total) * 50);
-			_('progress_bar_process').style.width = percent_completed + '%';
-			if (percent_completed < 50) {
-				_('progress_bar_process').innerHTML = percent_completed + '% uploaded';
-			}
-			else {
-				_('progress_bar_process').innerHTML = percent_completed + '% processing';
-			}
-		});
 
 		ajax_request.addEventListener('load', function(event) {
-//			_('uploaded_image').innerHTML = '<div class="alert alert-success">Files Uploaded Successfully</div>';
 			_('uploaded_image').innerHTML = '';
 			_('drag_drop').style.borderColor = '#ccc';
 			var unique = Date.now();
@@ -138,9 +127,9 @@ _('drag_drop').ondrop = function(event)
 		
 		source = new EventSource('progress.pl');
 		source.addEventListener('message', function(event) {
-			var percent_completed = Math.round(50 + (event.data / 2));
+			var percent_completed = Math.round(event.data);
 			_('progress_bar_process').style.width = percent_completed + '%';
-			_('progress_bar_process').innerHTML = percent_completed + '% processing';
+			_('progress_bar_process').innerHTML = percent_completed + '%';
 
 			if (event.data == "TERMINATE") {
 				source.close();
