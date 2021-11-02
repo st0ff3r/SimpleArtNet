@@ -50,7 +50,10 @@ if (defined $q->param('movie_file')) {
 	unlink $temp_file;
 }
 
+END {
+	$c->cleanup_temp_files;
+}
+
 1;
 
 __END__
-sub CLEANUP { $c->cleanup_temp_files }

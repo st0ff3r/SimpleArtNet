@@ -51,8 +51,6 @@ sub new {
 		server => "$redis_host:$redis_port",
 	) || warn $!;
 
-	my $queue_name = 'artnet';
-
 	$self->{num_universes} = ceil($self->{num_pixels} * $self->{num_channels_per_pixel} / 512);
 	for (1..$self->{num_universes}) {
 		$self->{dmx_channels}[$_ - 1] = chr(0) x 512;
@@ -120,7 +118,9 @@ sub send_artnet {
 	# send mirrored data to other port
 	$frame = [];
 	for (1..$self->{num_universes}) {
-		$packet = "Art-Net\x00\x00\x50\x00\x0e\x00\x00" . chr($_ - 1 + UNIVERSES_PER_PORT) . "\x00" . chr(2) . chr(0) . reverse($self->{dmx_channels}[$_ - 1]);
+		my $num_channels_per_pixel = $self->{num_channels_per_pixel};
+		my $mirrored_dmx_channels = join(q[], reverse($self->{dmx_channels}[$_ - 1] =~ /(.{$num_channels_per_pixel})/g));
+		$packet = "Art-Net\x00\x00\x50\x00\x0e\x00\x00" . chr($_ - 1 + UNIVERSES_PER_PORT) . "\x00" . chr(2) . chr(0) . $mirrored_dmx_channels;
 		push @$frame, $packet;
 	}
 	$self->add_artnet_to_queue(queue => REDIS_QUEUE_2_NAME, artnet => freeze($frame), fps => $p{fps});
