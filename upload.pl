@@ -44,8 +44,9 @@ if (defined $q->param('movie_file')) {
 	}
 	close $fh;
 	
-	$c->movie_to_artnet(movie_file => $temp_file, artnet_data_file => "/led_controller/data/artnet.data", loop_forth_and_back => $loop);
-	$c->movie_to_slitscan(slitscan_file => "/var/www/led_controller/images/slitscan.png");
+	if ($c->movie_to_artnet(movie_file => $temp_file, artnet_data_file => "/led_controller/data/artnet.data", loop_forth_and_back => $loop)) {
+		$c->movie_to_slitscan(slitscan_file => "/var/www/led_controller/images/slitscan.png");
+	}
 	
 	unlink $temp_file;
 }

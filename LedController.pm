@@ -47,7 +47,11 @@ sub movie_to_artnet {
 
 #	warn "ffprobe -v error -select_streams v -of default=noprint_wrappers=1:nokey=1 -show_entries stream=r_frame_rate $movie_file 2>&1";
 	my $fps = `ffprobe -v error -select_streams v -of default=noprint_wrappers=1:nokey=1 -show_entries stream=r_frame_rate $movie_file 2>&1`;
-	$fps = eval($fps);
+	$fps = eval($fps);	
+	if (!$fps) {
+		$self->{processing_progress}->store(-1);
+		return 0;	
+	}
 	
 	my $temp_dir = tempdir( CLEANUP => 0 );
 	my $movie_duration;
@@ -138,6 +142,7 @@ sub movie_to_artnet {
 	# tell send_artnet_data to fade to new
 	killall('USR2', 'send_artnet_data');
 	
+	return 1;
 }
 
 sub movie_to_slitscan {

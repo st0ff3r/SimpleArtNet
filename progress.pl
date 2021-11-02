@@ -16,7 +16,12 @@ print "Connection: keep-alive\n\n";
 
 while (1) {
 	my $progress = $processing_progress->fetch;
-	if ($progress < 99) {
+	if ($progress < 0) {
+		print("data: ERROR\n\n");
+		$processing_progress->store(0.0);
+		exit;
+	}
+	elsif ($progress < 99) {
 		print("data: " . ceil($progress) . "\n\n");
 	}
 	else {
