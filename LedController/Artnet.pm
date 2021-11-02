@@ -10,7 +10,10 @@ use Data::HexDump;
 
 use constant REDIS_HOST => '127.0.0.1';
 use constant REDIS_PORT => '6379';
-use constant REDIS_QUEUE_NAME => 'artnet';
+use constant REDIS_QUEUE_1_NAME => 'artnet_1';
+use constant REDIS_QUEUE_2_NAME => 'artnet_2';
+
+use constant UNIVERSES_PER_PORT => 3;	# debug
 
 use constant BUFFER_TIME => 5;
 
@@ -105,18 +108,25 @@ sub send_artnet {
 	my %p = @_;
 
 	my $packet;
-	my $frame = [];
+	my $frame;
+	
+	$frame = [];
 	for (1..$self->{num_universes}) {
 		$packet = "Art-Net\x00\x00\x50\x00\x0e\x00\x00" . chr($_ - 1) . "\x00" . chr(2) . chr(0) . $self->{dmx_channels}[$_ - 1];
 		push @$frame, $packet;
 	}
-	$self->add_artnet_to_queue(artnet => freeze($frame), fps => $p{fps});
-#	for (1..$self->{num_universes}) {
-#		$packet = "Art-Net\x00\x00\x50\x00\x0e\x00\x00" . chr($_ - 1 + 3) . "\x00" . chr(2) . chr(0) . $self->{dmx_channels}[$_ - 1];
-#		$self->add_artnet_to_queue(artnet => $packet, fps => $p{fps});
-#	}
+	$self->add_artnet_to_queue(queue => REDIS_QUEUE_1_NAME, artnet => freeze($frame), fps => $p{fps});
+	
+	# send mirrored data to other port
+	$frame = [];
+	for (1..$self->{num_universes}) {
+		$packet = "Art-Net\x00\x00\x50\x00\x0e\x00\x00" . chr($_ - 1 + UNIVERSES_PER_PORT) . "\x00" . chr(2) . chr(0) . reverse($self->{dmx_channels}[$_ - 1]);
+		push @$frame, $packet;
+	}
+	$self->add_artnet_to_queue(queue => REDIS_QUEUE_2_NAME, artnet => freeze($frame), fps => $p{fps});
+	
 	# wait for buffer to be emptied
-	while ($self->{redis}->keys('artnet:*') > (BUFFER_TIME * $p{fps})) {
+	while ($self->{redis}->keys(REDIS_QUEUE_1_NAME . ':*') > (BUFFER_TIME * $p{fps})) {
 		usleep 1000_000 * BUFFER_TIME / 2;
 	}
 }
@@ -131,8 +141,8 @@ sub add_artnet_to_queue {
 	my %p = @_;
 
 	# Create the next id
-	my $id = $self->{redis}->incr(join(':', REDIS_QUEUE_NAME, 'id'));
-	my $job_id = join(':', REDIS_QUEUE_NAME, $id);
+	my $id = $self->{redis}->incr(join(':', $p{queue}, 'id'));
+	my $job_id = join(':', $p{queue}, $id);
 
 	my %data = (topic => 'artnet', message => $p{artnet});
 
@@ -140,7 +150,7 @@ sub add_artnet_to_queue {
 	$self->{redis}->hmset($job_id, %data);
 
 	# Then add the job to the queue
-	$self->{redis}->rpush(join(':', REDIS_QUEUE_NAME, 'queue'), $job_id);
+	$self->{redis}->rpush(join(':', $p{queue}, 'queue'), $job_id);
 	
 	$self->{redis}->set('fps', $p{fps});
 }

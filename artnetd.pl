@@ -10,7 +10,8 @@ use Data::Dumper;
 
 use constant REDIS_HOST => '127.0.0.1';
 use constant REDIS_PORT => '6379';
-use constant REDIS_QUEUE_NAME => 'artnet';
+use constant REDIS_QUEUE_1_NAME => 'artnet_1';
+use constant REDIS_QUEUE_2_NAME => 'artnet_2';
 
 use constant ARTNET_CONF => 'artnet.conf';
 
@@ -24,8 +25,7 @@ my $redis = Redis->new(
 	server => "$redis_host:$redis_port",
 ) || warn $!;
 
-my $queue_name = 'artnet';
-my $timeout		= 86400;
+my $timeout = 86400;
 
 my @stats = ();
 my $fps_adjustment = 0;
@@ -56,7 +56,21 @@ my $socket = new IO::Socket::INET (
 
 while (1) {
 	my $time = [gettimeofday];
-	my ($queue, $job_id) = $redis->blpop(join(':', $queue_name, 'queue'), $timeout);
+
+	my ($queue, $job_id) = $redis->blpop(join(':', REDIS_QUEUE_1_NAME, 'queue'), $timeout);
+	if ($job_id) {
+	
+		my %data = $redis->hgetall($job_id);
+		my $frame = thaw($data{message});
+		foreach (@$frame) {
+			$socket->send($_);
+		}
+
+		# remove data for job
+		$redis->del($job_id);
+	}
+	# for the mirrored data
+	my ($queue, $job_id) = $redis->blpop(join(':', REDIS_QUEUE_2_NAME, 'queue'), $timeout);
 	if ($job_id) {
 	
 		my %data = $redis->hgetall($job_id);
