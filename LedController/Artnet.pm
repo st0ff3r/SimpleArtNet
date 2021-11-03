@@ -13,7 +13,7 @@ use constant REDIS_PORT => '6379';
 use constant REDIS_QUEUE_1_NAME => 'artnet_1';
 use constant REDIS_QUEUE_2_NAME => 'artnet_2';
 
-use constant BUFFER_TIME => 5;
+use constant BUFFER_TIME => 1;
 
 my @gamma_table = (
 	0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
