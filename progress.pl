@@ -21,13 +21,13 @@ while (1) {
 		$processing_progress->store(0.0);
 		exit;
 	}
-	elsif ($progress < 99) {
-		print("data: " . ceil($progress) . "\n\n");
-	}
-	else {
+	elsif ($progress == 100) {
 		print("data: 100\n\n");
 		print("data: TERMINATE\n\n");
 		$processing_progress->store(0.0);
 		exit;
+	}
+	else {
+		print("data: " . ceil($progress) . "\n\n");
 	}
 }
