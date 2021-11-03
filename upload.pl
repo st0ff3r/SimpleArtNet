@@ -4,6 +4,8 @@ use strict;
 use Data::Dumper;
 use File::Temp qw( tempfile );
 use Time::HiRes qw(usleep gettimeofday tv_interval);
+use Apache2::RequestUtil;
+use Apache2::Const;
 use CGI;
 
 use lib qw ( /led_controller );
@@ -12,26 +14,11 @@ use LedController;
 my $timestamp = int (gettimeofday * 1000);
 my $c = new LedController;
 
+my $r = Apache2::RequestUtil->request;
+$r->pool->cleanup_register(\&cleanup, $c);
+$r->content_type('text/html');
+
 my $q = new CGI (\&hook);
-
-sub hook {
-	my ($filename,$buffer,$bytes_read,$file) = @_;
-	my $length = $ENV{'CONTENT_LENGTH'};
-
-	my $uploading_progress = IPC::ShareLite->new(
-		-key		=> 6455,
-		-create		=> 'yes',
-		-destroy	=> 'no'
-	) or die $!;
-		
-	my $progress;
-	if ($length > 0) {	# don't divide by zero.
-		$progress = sprintf("%.1f", (( $bytes_read / $length ) * 50));	# uploading accounts for 50 % of total progress
-		$uploading_progress->store($progress);
-	}
-}
-
-print "Content-Type: text/html\n\n";
 
 if (defined $q->param('movie_file')) {
 	my ($fh, $temp_file) = tempfile( CLEANUP => 0 );
@@ -50,8 +37,28 @@ if (defined $q->param('movie_file')) {
 	
 	unlink $temp_file;
 }
+return Apache2::Const::OK;
 
-END {
+
+sub hook {
+	my ($filename,$buffer,$bytes_read,$file) = @_;
+	my $length = $ENV{'CONTENT_LENGTH'};
+
+	my $uploading_progress = IPC::ShareLite->new(
+		-key		=> 6455,
+		-create		=> 'yes',
+		-destroy	=> 'no'
+	) or die $!;
+		
+	my $progress;
+	if ($length > 0) {	# don't divide by zero.
+		$progress = sprintf("%.1f", (( $bytes_read / $length ) * 50));	# uploading accounts for 50 % of total progress
+		$uploading_progress->store($progress);
+	}
+}
+
+sub cleanup {
+	my $c = shift;
 	$c->cleanup_temp_files;
 }
 
