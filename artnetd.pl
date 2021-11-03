@@ -30,7 +30,8 @@ my $timeout = 86400;
 my @stats = ();
 my $fps_adjustment = 0;
 my $avg_fps;
-my $fps;
+my $fps = 0;
+my $last_fps = 0;
 
 # print fps stats
 $SIG{HUP} = sub { 
@@ -85,6 +86,13 @@ while (1) {
 	}
 	
 	$fps = $redis->get('fps');
+	if ($fps != $last_fps) {
+		print "frame rate changed: " . $fps . "\n";
+		# reset stats and frame rate adjustment
+		@stats = ();
+		$fps_adjustment = 0;
+	}
+	$last_fps = $fps;
 
 	# update fps stats
 	if (@stats > $fps * 60) {	# a time window of a minute for stats
