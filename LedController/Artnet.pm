@@ -13,8 +13,6 @@ use constant REDIS_PORT => '6379';
 use constant REDIS_QUEUE_1_NAME => 'artnet_1';
 use constant REDIS_QUEUE_2_NAME => 'artnet_2';
 
-use constant UNIVERSES_PER_PORT => 3;	# debug
-
 use constant BUFFER_TIME => 5;
 
 my @gamma_table = (
@@ -44,6 +42,7 @@ sub new {
 	$self->{num_channels_per_pixel} = $p{num_channels_per_pixel};
 	$self->{pixel_format} = $p{pixel_format};
 	$self->{num_pixels} = $p{num_pixels};
+	$self->{universes_per_port} = $p{universes_per_port};
 
 	my $redis_host = REDIS_HOST;
 	my $redis_port = REDIS_PORT;
@@ -51,10 +50,14 @@ sub new {
 		server => "$redis_host:$redis_port",
 	) || warn $!;
 
+	# init all channels to 0
 	$self->{num_universes} = ceil($self->{num_pixels} * $self->{num_channels_per_pixel} / 512);
 	for (1..$self->{num_universes}) {
 		$self->{dmx_channels}[$_ - 1] = chr(0) x 512;
 	}
+	
+	# calculate channel padding
+	$self->{num_channels_not_used} = ($self->{num_universes} * 512) - ($self->{num_channels_per_pixel} * $self->{num_pixels});
 	
 	bless $self, $class;
 
@@ -116,11 +119,24 @@ sub send_artnet {
 	$self->add_artnet_to_queue(queue => REDIS_QUEUE_1_NAME, artnet => freeze($frame), fps => $p{fps});
 	
 	# send mirrored data to other port
+	my $num_channels_per_pixel = $self->{num_channels_per_pixel};
+	my $num_channels_not_used = $self->{num_channels_not_used};
 	$frame = [];
 	for (1..$self->{num_universes}) {
-		my $num_channels_per_pixel = $self->{num_channels_per_pixel};
-		my $mirrored_dmx_channels = join(q[], reverse($self->{dmx_channels}[$_ - 1] =~ /(.{$num_channels_per_pixel})/gs));
-		$packet = "Art-Net\x00\x00\x50\x00\x0e\x00\x00" . chr($_ - 1 + UNIVERSES_PER_PORT) . "\x00" . chr(2) . chr(0) . $mirrored_dmx_channels;
+		my $mirrored_dmx_channels = $self->{dmx_channels}[$_ - 1];
+		
+		if ($_ == $self->{num_universes}) {
+			# if last universe
+			$mirrored_dmx_channels =~ s/.{$num_channels_not_used}$//s;	# remove channel padding		
+			$mirrored_dmx_channels = join(q[], reverse($mirrored_dmx_channels =~ /(.{$num_channels_per_pixel})/gs));	# mirror whole universe
+			$mirrored_dmx_channels .= chr(0) x $num_channels_not_used;	# add channel padding again
+			
+		}
+		else {
+			$mirrored_dmx_channels = join(q[], reverse($mirrored_dmx_channels =~ /(.{$num_channels_per_pixel})/gs));	# mirror whole universe
+		}
+
+		$packet = "Art-Net\x00\x00\x50\x00\x0e\x00\x00" . chr($_ - 1 + $self->{universes_per_port}) . "\x00" . chr(2) . chr(0) . $mirrored_dmx_channels;
 		push @$frame, $packet;
 	}
 	$self->add_artnet_to_queue(queue => REDIS_QUEUE_2_NAME, artnet => freeze($frame), fps => $p{fps});

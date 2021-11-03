@@ -34,7 +34,8 @@ my $artnet = new LedController::Artnet(
 	peer_addr => $config->param('peer_addr'),
 	pixel_format => $config->param('pixel_format') || 'GRBW',
 	num_channels_per_pixel => $config->param('num_channels_per_pixel') || 4,
-	num_pixels => $config->param('num_pixels') || 300
+	num_pixels => $config->param('num_pixels') || 300,
+	universes_per_port => $config->param('universes_per_port') || 3
 );
 
 $SIG{USR1} = sub { $intensity = $share_intensity->fetch };
