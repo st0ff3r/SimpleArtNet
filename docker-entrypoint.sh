@@ -19,12 +19,12 @@ trap terminate SIGTERM
 sleep 5;
 
 #sudo -u www-data 
-./artnetd.pl &
-artnetd_pid=$!
-
-#sudo -u www-data 
 ./send_artnet_data.pl &
 send_artnet_data_pid=$!
+
+#sudo -u www-data 
+./artnetd.pl &
+artnetd_pid=$!
 
 wait "$send_artnet_data_pid"
 wait "$artnetd_pid"
