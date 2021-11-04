@@ -90,5 +90,5 @@ COPY ./progress.pl /var/www/led_controller/
 COPY ./bootstrap.min.css /var/www/led_controller/
 COPY ./bootstrap.min.css.map /var/www/led_controller/
 
-CMD /docker-entrypoint.sh
+ENTRYPOINT [ "/docker-entrypoint.sh" ]
 

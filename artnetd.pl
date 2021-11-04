@@ -33,6 +33,8 @@ my $avg_fps;
 my $fps = 0;
 my $last_fps = 0;
 
+my $should_exit = 0;
+
 # print fps stats
 $SIG{HUP} = sub { 
 	if (@stats >= $fps) {
@@ -45,6 +47,10 @@ $SIG{HUP} = sub {
 		print "cant calculate stats yet\n";
 	}
 };
+
+$SIG{TERM} = sub { print "$0 received SIGTERM\n"; $should_exit = 1 };
+$SIG{KILL} = sub { print "$0 received SIGKILL\n"; $should_exit = 1 };
+my $exit_countdown = $fps * $config->param('cross_fade_time') || 2;
 
 # flush after every write
 $| = 1;
@@ -108,5 +114,12 @@ while (1) {
 
 	my $usleep_time = 1000_000 * ((1 / $fps) - tv_interval($time)) + $fps_adjustment;
 	usleep($usleep_time >= 0 ? $usleep_time : 0);
+	
+	# signal received, wait for fade out and exit
+	if ($should_exit) {
+		if ($exit_countdown-- <= 0) {
+			die "$0 quitting\n";
+		}
+	}
 }
 

@@ -53,9 +53,8 @@ $SIG{USR2} = sub {
 };
 
 my $should_exit = 0;
-$SIG{TERM} = sub { $cross_fade_state = 'fade_out'; $should_exit = 1 };
-$SIG{INT} = sub { $cross_fade_state = 'fade_out'; $should_exit = 1 };
-$SIG{KILL} = sub { $cross_fade_state = 'fade_out'; $should_exit = 1 };
+$SIG{TERM} = sub { print "$0 received SIGTERM\n"; $cross_fade_state = 'fade_out'; $should_exit = 1 };
+$SIG{KILL} = sub { print "$0 received SIGKILL\n"; $cross_fade_state = 'fade_out'; $should_exit = 1 };
 
 my @pixel_line;
 my ($red, $green, $blue);
@@ -77,7 +76,7 @@ while (1) {
 			$cross_fade_intensity = 0.0;
 			$cross_fade_state = 'off';
 			if ($should_exit) {
-				die "quitting\n";
+				die "$0 quitting\n";
 			}
 			else {
 				# switch to new data
