@@ -8,8 +8,13 @@ cd /led_controller
 
 terminate() {
 	echo "sending SIGTERM to child processes"
+	
+	send_artnet_data_pid=$(pgrep -P $sudo_send_artnet_data_pid)
 	kill -TERM "$send_artnet_data_pid" 2> /dev/null
+	
 	sleep 5;
+		
+	artnetd_pid=$(pgrep -P  $sudo_artnetd_pid)
 	kill -TERM "$artnetd_pid" 2> /dev/null
 }
 
@@ -18,13 +23,11 @@ trap terminate SIGTERM
 ./sun_tracker.pl &
 sleep 5;
 
-#sudo -u www-data 
-./send_artnet_data.pl &
-send_artnet_data_pid=$!
+sudo -u www-data ./send_artnet_data.pl &
+sudo_send_artnet_data_pid=$!
 
-#sudo -u www-data 
-./artnetd.pl &
-artnetd_pid=$!
+sudo -u www-data ./artnetd.pl &
+sudo_artnetd_pid=$!
 
-wait "$send_artnet_data_pid"
-wait "$artnetd_pid"
+wait "$sudo_send_artnet_data_pid"
+wait "$sudo_artnetd_pid"
