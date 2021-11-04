@@ -3,7 +3,7 @@
 service apache2 start
 service redis-server start
 
-#chown -R www-data:www-data /led_controller/data
+chown -R www-data:www-data /led_controller/data
 cd /led_controller
 
 terminate() {
