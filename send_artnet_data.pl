@@ -15,7 +15,7 @@ my $artnet_data_file = $ARGV[0] || "data/artnet.data";
 my $artnet_data = '';
 my $new_artnet_data = '';
 
-my $intensity = 1.0;
+my $intensity = 0.0;
 my $cross_fade_intensity = 0.0;
 my $cross_fade_state = 'fade_in';
 my $fps;
