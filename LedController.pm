@@ -7,11 +7,14 @@ use Image::Size;
 use Config::Simple;
 use File::Path qw(remove_tree);
 use Proc::Killall;
-use IPC::ShareLite;
+use Redis;
 use Data::Dumper;
 
 use constant ARTNET_CONF => '/led_controller/artnet.conf';
 use constant SLITSCAN_IMAGE_MAX_HEIGHT => 10000;
+
+use constant REDIS_HOST => '127.0.0.1';
+use constant REDIS_PORT => '6379';
 
 my $config = new Config::Simple(ARTNET_CONF);
 
@@ -21,13 +24,14 @@ sub new {
 	my $self = {};
 
 	$self->{slitscan_image} = new Image::Magick;
-	$self->{processing_progress} = IPC::ShareLite->new(
-		-key		=> 6455,
-		-create		=> 'yes',
-		-destroy	=> 'no'
-	) or die $!;
+
+	my $redis_host = REDIS_HOST;
+	my $redis_port = REDIS_PORT;
+	$self->{redis} = Redis->new(
+		server => "$redis_host:$redis_port",
+	) || warn $!;
 	
-	$self->{processing_progress}->store(0.0);
+	$self->{redis}->set('progress', '0.0');
 	
 	bless $self, $class;
 
@@ -43,13 +47,13 @@ sub movie_to_artnet {
 	my $loop_forth_and_back = $p{loop_forth_and_back} || undef;
 
 	# movie file was uploaded
-	$self->{processing_progress}->store(50.0);	# 50% done
+	$self->{redis}->set('progress', '50.0');	# 50% done
 
 #	warn "ffprobe -v error -select_streams v -of default=noprint_wrappers=1:nokey=1 -show_entries stream=r_frame_rate $movie_file 2>&1";
 	my $fps = `ffprobe -v error -select_streams v -of default=noprint_wrappers=1:nokey=1 -show_entries stream=r_frame_rate $movie_file 2>&1`;
 	$fps = eval($fps);	
 	if (!$fps) {
-		$self->{processing_progress}->store(-1);	# signaling an error to web client
+		$self->{redis}->set('progress', '-1');	# signaling an error to web client
 		return 0;	
 	}
 	
@@ -75,8 +79,7 @@ sub movie_to_artnet {
 		if (/out_time=(\d{2}):(\d{2}):(\d{2})(\.\d+)/) {
 			$movie_converted = $1 * 60 * 60 + $2 * 60 + $3 + $4;
 			$movie_convertion_progress = $movie_converted / $movie_duration;
-			$self->{processing_progress}->store(50.0 + ($movie_convertion_progress * 25.0));	# 50% - 75% done
-#			warn "ffmpeg progress: $movie_convertion_progress\n";
+			$self->{redis}->set('progress', 50.0 + ($movie_convertion_progress * 25.0));	# 50% - 75% done
 		}
 	}
 	
@@ -116,9 +119,9 @@ sub movie_to_artnet {
 		}
 		print $fh "\n";
 		$i++;
-		my $progress = $self->{processing_progress}->fetch;
+		my $progress = $self->{redis}->get('progress');
 		if ($progress + $progress_inc < 100.0) {	# make sure we dont go over 100%
-			$self->{processing_progress}->store($progress + $progress_inc);
+			$self->{redis}->set('progress', ($progress + $progress_inc));
 		}
 	}
 	if ($loop_forth_and_back && @images >= 3) {
@@ -135,16 +138,16 @@ sub movie_to_artnet {
 				print $fh sprintf("%02x", int($red * 255)) . sprintf("%02x", int($green * 255)) . sprintf("%02x", int($blue * 255));
 			}
 			print $fh "\n";
-			my $progress = $self->{processing_progress}->fetch;
+			my $progress = $self->{redis}->get('progress');
 			if ($progress + $progress_inc < 100.0) {	# make sure we dont go over 100%
-				$self->{processing_progress}->store($progress + $progress_inc);
+				$self->{redis}->set('progress', ($progress + $progress_inc));
 			}
 		}
 	}
 	close($fh);
 	move($temp_file, $artnet_data_file) || die $!;
 	remove_tree($temp_dir);
-	$self->{processing_progress}->store(100.0);	# 100% done
+	$self->{redis}->set('progress', '100.0');
 
 	# tell send_artnet_data to fade to new
 	killall('USR2', 'send_artnet_data');

@@ -3,9 +3,9 @@ package LedController::Artnet;
 use strict;
 use Time::HiRes qw(usleep gettimeofday tv_interval);
 use POSIX qw( ceil );
-use Data::Dumper;
 use Redis;
 use Storable qw(freeze thaw);
+use Data::Dumper;
 use Data::HexDump;
 
 use constant REDIS_HOST => '127.0.0.1';
