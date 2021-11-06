@@ -11,6 +11,10 @@ use Data::Dumper;
 use constant REDIS_HOST => '127.0.0.1';
 use constant REDIS_PORT => '6379';
 
+$SIG{PIPE} = sub {
+	warn "connection aborted\n";
+};
+
 my $redis_host = REDIS_HOST;
 my $redis_port = REDIS_PORT;
 my $redis = Redis->new(
@@ -50,4 +54,9 @@ while (1) {
 	else {
 		print("data: " . ceil($progress) . "\n\n");
 	}
+	$r->rflush;
 }
+
+1;
+
+__END__
