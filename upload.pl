@@ -7,6 +7,7 @@ use Time::HiRes qw(usleep gettimeofday tv_interval);
 use Apache2::RequestUtil;
 use Apache2::Const;
 use CGI;
+use CGI::Cookie ();
 
 use lib qw ( /led_controller );
 use LedController;
@@ -19,6 +20,19 @@ my $c = new LedController;
 
 my $r = Apache2::RequestUtil->request;
 $r->pool->cleanup_register(\&cleanup, $c);
+
+my %cookies = ();
+my $session_id = '';
+if (%cookies = CGI::Cookie->fetch) {
+	# cookie received
+	$session_id = $cookies{'session_id'}->value;
+	warn "uplosad session_id: $session_id\n";
+
+	# send it again
+	my $cookie = CGI::Cookie->new(-name  => 'session_id', -value => $session_id);
+	$r->err_headers_out->add('Set-Cookie' => $cookie);
+}
+
 $r->content_type('text/html');
 
 my $q = new CGI (\&hook);

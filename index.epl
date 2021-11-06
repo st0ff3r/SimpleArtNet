@@ -1,8 +1,33 @@
 [- 
-use Data::Dumper;
+use Apache2::RequestUtil;
+use Apache2::Const;
+use CGI;
+use CGI::Cookie ();
 use Time::HiRes qw(usleep gettimeofday tv_interval);
+use Data::UUID;
+use Data::Dumper;
 
 $timestamp = int (gettimeofday * 1000);
+-]
+[- 
+$r = Apache2::RequestUtil->request;
+
+if (%cookies = CGI::Cookie->fetch) {
+	# cookie received
+	$session_id = $cookies{'session_id'}->value;
+
+	# send it again
+	$cookie = CGI::Cookie->new(-name  => 'session_id', -value => $session_id);
+	$r->err_headers_out->add('Set-Cookie' => $cookie);
+}
+else {
+	# no cookie received, we make one
+	$ug = Data::UUID->new;
+	
+	# send it again
+	$cookie = CGI::Cookie->new(-name  => 'session_id', -value => $ug->create_hex);
+	$r->err_headers_out->add('Set-Cookie' => $cookie);
+}
 -]
 <!doctype html>
 <html lang="en">

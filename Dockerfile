@@ -55,6 +55,7 @@ RUN apt-get update && apt-get install -y \
 	libdatetime-event-sunrise-perl \
 	libdata-hexdump-perl \
 	libredis-perl \
+	libdata-uuid-perl \
 	ffmpeg \
 	imagemagick \
 	tcpdump
