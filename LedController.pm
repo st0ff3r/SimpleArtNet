@@ -54,7 +54,6 @@ sub movie_to_artnet {
 	my $fps = `ffprobe -v error -select_streams v -of default=noprint_wrappers=1:nokey=1 -show_entries stream=r_frame_rate $movie_file 2>&1`;
 	$fps = eval($fps);	
 	if (!$fps) {
-		$self->{redis}->set('progress', '-1');	# signaling an error to web client
 		$self->{redis}->set('progress:' . $self->{session_id}, '-1');	# signaling an error to web client
 		return 0;	
 	}
@@ -81,7 +80,6 @@ sub movie_to_artnet {
 		if (/out_time=(\d{2}):(\d{2}):(\d{2})(\.\d+)/) {
 			$movie_converted = $1 * 60 * 60 + $2 * 60 + $3 + $4;
 			$movie_convertion_progress = $movie_converted / $movie_duration;
-			$self->{redis}->set('progress', 50.0 + ($movie_convertion_progress * 25.0));	# 50% - 75% done
 			$self->{redis}->set('progress:' . $self->{session_id}, 50.0 + ($movie_convertion_progress * 25.0));	# 50% - 75% done
 		}
 	}
@@ -143,7 +141,6 @@ sub movie_to_artnet {
 			print $fh "\n";
 			my $progress = $self->{redis}->get('progress:' . $self->{session_id});
 			if ($progress + $progress_inc < 100.0) {	# make sure we dont go over 100%
-				$self->{redis}->set('progress', ($progress + $progress_inc));
 				$self->{redis}->set('progress:' . $self->{session_id}, ($progress + $progress_inc));
 			}
 		}
@@ -151,7 +148,6 @@ sub movie_to_artnet {
 	close($fh);
 	move($temp_file, $artnet_data_file) || die $!;
 	remove_tree($temp_dir);
-	$self->{redis}->set('progress', '100.0');
 	$self->{redis}->set('progress:' . $self->{session_id}, '100.0');
 
 	# tell send_artnet_data to fade to new
