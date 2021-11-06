@@ -11,7 +11,7 @@ use constant REDIS_PORT => '6379';
 
 my $redis_host = REDIS_HOST;
 my $redis_port = REDIS_PORT;
-$self->{redis} = Redis->new(
+my $redis = Redis->new(
 	server => "$redis_host:$redis_port",
 ) || warn $!;
 
@@ -22,16 +22,16 @@ print "Cache-Control: no-cache\n";
 print "Connection: keep-alive\n\n";
 
 while (1) {
-	my $progress = $self->{redis}->get('progress');
+	my $progress = $redis->get('progress');
 	if ($progress < 0) {
 		print("data: ERROR\n\n");
-		$self->{redis}->set('progress', '0.0');
+		$redis->set('progress', '0.0');
 		exit;
 	}
 	elsif ($progress == 100) {
 		print("data: 100\n\n");
 		print("data: TERMINATE\n\n");
-		$self->{redis}->set('progress', '0.0');
+		$redis->set('progress', '0.0');
 		exit;
 	}
 	else {

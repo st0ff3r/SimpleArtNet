@@ -11,6 +11,9 @@ use CGI;
 use lib qw ( /led_controller );
 use LedController;
 
+use constant REDIS_HOST => '127.0.0.1';
+use constant REDIS_PORT => '6379';
+
 my $timestamp = int (gettimeofday * 1000);
 my $c = new LedController;
 
@@ -44,16 +47,16 @@ sub hook {
 	my ($filename,$buffer,$bytes_read,$file) = @_;
 	my $length = $ENV{'CONTENT_LENGTH'};
 
-	my $uploading_progress = IPC::ShareLite->new(
-		-key		=> 6455,
-		-create		=> 'yes',
-		-destroy	=> 'no'
-	) or die $!;
-		
+	my $redis_host = REDIS_HOST;
+	my $redis_port = REDIS_PORT;
+	my $redis = Redis->new(
+		server => "$redis_host:$redis_port",
+	) || warn $!;
+
 	my $progress;
 	if ($length > 0) {	# don't divide by zero.
 		$progress = sprintf("%.1f", (( $bytes_read / $length ) * 50));	# uploading accounts for 50 % of total progress
-		$uploading_progress->store($progress);
+		$redis->set('progress', $progress);
 	}
 }
 
