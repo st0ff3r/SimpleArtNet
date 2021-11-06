@@ -19,23 +19,23 @@ my $timestamp = int (gettimeofday * 1000);
 my $c = new LedController;
 
 my $r = Apache2::RequestUtil->request;
-$r->pool->cleanup_register(\&cleanup, $c);
 
 my %cookies = ();
-my $session_id = '';
+my $session_id;
 if (%cookies = CGI::Cookie->fetch) {
 	# cookie received
 	$session_id = $cookies{'session_id'}->value;
-	warn "uplosad session_id: $session_id\n";
+	$c->set_session_id($session_id);
 
 	# send it again
 	my $cookie = CGI::Cookie->new(-name  => 'session_id', -value => $session_id);
 	$r->err_headers_out->add('Set-Cookie' => $cookie);
 }
 
+$r->pool->cleanup_register(\&cleanup, {led_controller => $c, session_id => $session_id});
 $r->content_type('text/html');
 
-my $q = new CGI (\&hook);
+my $q = new CGI(\&hook, $session_id);
 
 if (defined $q->param('movie_file')) {
 	my ($fh, $temp_file) = tempfile( CLEANUP => 0 );
@@ -58,7 +58,7 @@ return Apache2::Const::OK;
 
 
 sub hook {
-	my ($filename,$buffer,$bytes_read,$file) = @_;
+	my ($filename, $buffer, $bytes_read, $id) = @_;
 	my $length = $ENV{'CONTENT_LENGTH'};
 
 	my $redis_host = REDIS_HOST;
@@ -70,13 +70,16 @@ sub hook {
 	my $progress;
 	if ($length > 0) {	# don't divide by zero.
 		$progress = sprintf("%.1f", (( $bytes_read / $length ) * 50));	# uploading accounts for 50 % of total progress
-		$redis->set('progress', $progress);
+		$redis->set('progress:' . $id, $progress);
 	}
 }
 
 sub cleanup {
-	my $c = shift;
-	$c->cleanup_temp_files;
+	my $p = shift;
+	my $controller = $p->{led_controller};
+	my $id = $p->{session_id};
+
+	$controller->cleanup_temp_files($id);
 }
 
 1;

@@ -24,7 +24,6 @@ my $session_id = '';
 if (%cookies = CGI::Cookie->fetch) {
 	# cookie received
 	$session_id = $cookies{'session_id'}->value;
-	warn "progress session_id: $session_id\n";
 
 	# send it again
 	my $cookie = CGI::Cookie->new(-name  => 'session_id', -value => $session_id);
@@ -36,16 +35,16 @@ print "Cache-Control: no-cache\n";
 print "Connection: keep-alive\n\n";
 
 while (1) {
-	my $progress = $redis->get('progress');
+	my $progress = $redis->get('progress:' . $session_id);
 	if ($progress < 0) {
 		print("data: ERROR\n\n");
-		$redis->set('progress', '0.0');
+		$redis->set('progress:' . $session_id, '0.0');
 		exit;
 	}
 	elsif ($progress == 100) {
 		print("data: 100\n\n");
 		print("data: TERMINATE\n\n");
-		$redis->set('progress', '0.0');
+		$redis->set('progress:' . $session_id, '0.0');
 		exit;
 	}
 	else {
