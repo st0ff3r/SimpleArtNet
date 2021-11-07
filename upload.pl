@@ -27,7 +27,7 @@ if (%cookies = CGI::Cookie->fetch) {
 	# cookie received
 	$session_id = $cookies{'session_id'}->value;
 	# send it again
-	my $cookie = CGI::Cookie->new(-name  => 'session_id', -value => $session_id);
+	my $cookie = CGI::Cookie->new(-name  => 'session_id', -value => $session_id, -samesite => 'Lax');
 	$r->err_headers_out->add('Set-Cookie' => $cookie);
 
 	if ($c->set_session_id($session_id)) {
@@ -58,8 +58,6 @@ if (%cookies = CGI::Cookie->fetch) {
 		warn "session $session_id running\n";
 	}
 }
-
-
 return Apache2::Const::OK;
 
 

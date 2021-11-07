@@ -40,15 +40,17 @@ print "Connection: keep-alive\n\n";
 
 while (1) {
 	my $progress = $redis->get('progress:' . $session_id);
-	if ($progress < 0) {
+	if ($progress == -1) {
 		print("data: ERROR\n\n");
-		$redis->del('progress:' . $session_id);
+		exit;
+	}
+	elsif ($progress == -2) {
+		print("data: RUNNING\n\n");
 		exit;
 	}
 	elsif ($progress == 100) {
 		print("data: 100\n\n");
-		print("data: TERMINATE\n\n");
-		$redis->del('progress:' . $session_id);
+		print("data: DONE\n\n");
 		exit;
 	}
 	else {
