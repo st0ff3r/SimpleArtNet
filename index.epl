@@ -168,6 +168,9 @@ _('drag_drop').ondrop = function(event)
 				// set to 0 for next upload
 				_('progress_bar_process').style.width = 0.0 + '%';
 				_('progress_bar_process').innerHTML = '';
+				
+				var unique = Date.now();
+				_('slitscan').src = 'images/slitscan.png?' + unique;
 			}
 			if (event.data == "ERROR") {
 				source.close();
