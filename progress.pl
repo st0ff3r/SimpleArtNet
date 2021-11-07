@@ -42,15 +42,22 @@ while (1) {
 	my $progress = $redis->get('progress:' . $session_id);
 	if ($progress == -1) {
 		print("data: ERROR\n\n");
+		$redis->del('progress:' . $session_id);
 		exit;
 	}
 	elsif ($progress == -2) {
 		print("data: RUNNING\n\n");
+		$redis->del('progress:' . $session_id);
 		exit;
 	}
+#	elsif (! defined($progress)) {
+#		print("data: NOT_RUNNING\n\n");
+#		exit;
+#	}
 	elsif ($progress == 100) {
 		print("data: 100\n\n");
 		print("data: DONE\n\n");
+		$redis->del('progress:' . $session_id);
 		exit;
 	}
 	else {
