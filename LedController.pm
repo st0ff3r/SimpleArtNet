@@ -168,8 +168,16 @@ sub movie_to_slitscan {
 sub set_session_id {
 	my $self = shift;
 	$self->{session_id} = shift;
-
-	$self->{redis}->set('progress:' . $self->{session_id}, '0.0');
+	
+	if ($self->{redis}->get('progress:' . $self->{session_id})) {
+		# a session is allready running
+		return 0;
+	}
+	else {
+		# create new session
+		$self->{redis}->set('progress:' . $self->{session_id}, '0.0');
+		return 1;
+	}
 }
 
 sub cleanup_temp_files {

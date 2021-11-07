@@ -19,41 +19,47 @@ my $timestamp = int (gettimeofday * 1000);
 my $c = new LedController;
 
 my $r = Apache2::RequestUtil->request;
+$r->content_type('text/html');
 
 my %cookies = ();
 my $session_id;
 if (%cookies = CGI::Cookie->fetch) {
 	# cookie received
 	$session_id = $cookies{'session_id'}->value;
-	$c->set_session_id($session_id);
-
 	# send it again
 	my $cookie = CGI::Cookie->new(-name  => 'session_id', -value => $session_id);
 	$r->err_headers_out->add('Set-Cookie' => $cookie);
+
+	if ($c->set_session_id($session_id)) {
+		# new session created
+		$r->pool->cleanup_register(\&cleanup, {led_controller => $c, session_id => $session_id});
+
+		my $q = new CGI(\&hook, $session_id);
+	
+		if (defined $q->param('movie_file')) {
+			my ($fh, $temp_file) = tempfile( CLEANUP => 0 );
+		
+			my $loop = $q->param('loop') || 1;
+		
+			my $buffer;
+			while (read($q->param('movie_file'), $buffer, 26214400)) {	# max 25 MB
+				print $fh $buffer;
+			}
+			close $fh;
+		
+			if ($c->movie_to_artnet(movie_file => $temp_file, artnet_data_file => "/led_controller/data/artnet.data", loop_forth_and_back => $loop)) {
+				$c->movie_to_slitscan(slitscan_file => "/var/www/led_controller/images/slitscan.png");
+			}
+		
+			unlink $temp_file;
+		}
+	}
+	else {
+		warn "session $session_id running\n";
+	}
 }
 
-$r->pool->cleanup_register(\&cleanup, {led_controller => $c, session_id => $session_id});
-$r->content_type('text/html');
 
-my $q = new CGI(\&hook, $session_id);
-
-if (defined $q->param('movie_file')) {
-	my ($fh, $temp_file) = tempfile( CLEANUP => 0 );
-	
-	my $loop = $q->param('loop') || 1;
-	
-	my $buffer;
-	while (read($q->param('movie_file'), $buffer, 26214400)) {	# max 25 MB
-		print $fh $buffer;
-	}
-	close $fh;
-	
-	if ($c->movie_to_artnet(movie_file => $temp_file, artnet_data_file => "/led_controller/data/artnet.data", loop_forth_and_back => $loop)) {
-		$c->movie_to_slitscan(slitscan_file => "/var/www/led_controller/images/slitscan.png");
-	}
-	
-	unlink $temp_file;
-}
 return Apache2::Const::OK;
 
 
