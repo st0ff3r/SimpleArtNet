@@ -183,6 +183,7 @@ _('drag_drop').ondrop = function(event)
 				_('progress_bar').style.display = 'none';
 				_('progress_bar_process').style.width = 0.0 + '%';
 				_('progress_bar_process').innerHTML = '';
+				_('drag_drop').style.borderColor = '#ccc';
 				
 				var unique = Date.now();
 				_('slitscan').src = 'images/slitscan.png?' + unique;
