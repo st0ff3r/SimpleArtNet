@@ -162,16 +162,13 @@ _('drag_drop').ondrop = function(event)
 //					_('uploaded_image').style.display = 'none'; 
 					_('drag_drop').style.borderColor = '#ccc';
 					_('uploaded_image').innerHTML = '';
-					
-					var unique = Date.now();
-					_('slitscan').src = 'images/slitscan.png?' + unique;
 				}, 3000);
 			}
 		});
-		ajax_request.addEventListener('loadend', function(event) {
-			var unique = Date.now();
-			_('slitscan').src = 'images/slitscan.png?' + unique;
-		});
+//		ajax_request.addEventListener('loadend', function(event) {
+//			var unique = Date.now();
+//			_('slitscan').src = 'images/slitscan.png?' + unique;
+//		});
 		
 		source = new EventSource('progress');
 		source.addEventListener('message', function(event) {
