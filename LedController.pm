@@ -1,5 +1,6 @@
 package LedController;
 
+use strict;
 use File::Temp qw( tempfile tempdir );
 use File::Copy;
 use Image::Magick;
@@ -17,6 +18,10 @@ use constant REDIS_HOST => '127.0.0.1';
 use constant REDIS_PORT => '6379';
 
 my $config = new Config::Simple(ARTNET_CONF);
+
+my $movie_file;
+my $temp_artnet_data_file;
+my $temp_dir;
 
 sub new {
 	my $class = shift;
@@ -44,7 +49,7 @@ sub movie_to_artnet {
 	my $self = shift;
 	my %p = @_;
 	
-	my $movie_file = $p{movie_file};
+	$movie_file = $p{movie_file};
 	my $artnet_data_file = $p{artnet_data_file};
 	my $loop_forth_and_back = $p{loop_forth_and_back} || undef;
 
@@ -58,7 +63,7 @@ sub movie_to_artnet {
 		return 0;	
 	}
 	
-	my $temp_dir = tempdir( CLEANUP => 0 );
+	$temp_dir = tempdir( CLEANUP => 0 );
 	my $movie_duration;
 	my $movie_converted;
 	my $movie_convertion_progress;
@@ -99,7 +104,8 @@ sub movie_to_artnet {
 
 	my ($image_size_x, $image_size_y);
 	my $x;
-	my ($fh, $temp_file) = tempfile( CLEANUP => 0 );
+	my $fh;
+	($fh, $temp_artnet_data_file) = tempfile( CLEANUP => 0 );
 	my ($red, $green, $blue);
 
 	print $fh "$fps\n";
@@ -146,7 +152,7 @@ sub movie_to_artnet {
 		}
 	}
 	close($fh);
-	move($temp_file, $artnet_data_file) || die $!;
+	move($temp_artnet_data_file, $artnet_data_file) || die $!;
 	remove_tree($temp_dir);
 	$self->{redis}->set('progress', '100.0');
 
@@ -160,9 +166,10 @@ sub movie_to_slitscan {
 	my $self = shift;
 	my %p = @_;
 
-	open(IMAGE, $p{slitscan_file});
-	$self->{slitscan_image}->Write($p{slitscan_file});
-	close(IMAGE);
+	my ($fh, $temp_file) = tempfile( CLEANUP => 0, SUFFIX => '.png');
+	$self->{slitscan_image}->Write($temp_file);
+	close($fh);
+	move($temp_file, $p{slitscan_file}) || die $!;
 }
 
 sub set_session_id {
@@ -184,8 +191,9 @@ sub set_session_id {
 sub cleanup_temp_files {
 	my $self = shift;
 	my $id = shift;
+	
 	warn "cleaning up temp files\n";
-	unlink($temp_file);
+	unlink($temp_artnet_data_file);
 	unlink($movie_file);
 	remove_tree($temp_dir);
 	
