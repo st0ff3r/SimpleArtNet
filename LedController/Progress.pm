@@ -1,7 +1,6 @@
 package LedController::Progress;
 
 use IPC::ShareLite;
-use POSIX qw( ceil );
 use Apache2::RequestRec;
 use Apache2::RequestIO;
 use Apache2::Const;
@@ -54,7 +53,7 @@ sub handler {
 			exit;
 		}
 		else {
-			print("data: " . ceil($progress) . "\n\n");
+			print("data: " . int($progress) . "\n\n");
 		}
 		$r->rflush;
 	}

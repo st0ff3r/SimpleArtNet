@@ -154,7 +154,6 @@ sub movie_to_artnet {
 	close($fh);
 	move($temp_artnet_data_file, $artnet_data_file) || die $!;
 	remove_tree($temp_dir);
-	$self->{redis}->set('progress', '100.0');
 
 	# tell send_artnet_data to fade to new
 	killall('USR2', 'send_artnet_data');
@@ -170,6 +169,7 @@ sub movie_to_slitscan {
 	$self->{slitscan_image}->Write($temp_file);
 	close($fh);
 	move($temp_file, $p{slitscan_file}) || die $!;
+	$self->{redis}->set('progress', '100.0');
 }
 
 sub set_session_id {
