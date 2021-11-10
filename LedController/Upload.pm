@@ -77,7 +77,7 @@ sub hook {
 	my $progress;
 	if ($length > 0) {	# don't divide by zero.
 		$progress = sprintf("%.1f", (( $bytes_read / $length ) * 50));	# uploading accounts for 50 % of total progress
-		$redis->set('progress:' . $id, $progress);
+		$redis->set('progress', $progress);
 	}
 }
 

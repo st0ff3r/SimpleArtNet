@@ -41,16 +41,16 @@ sub handler {
 	$r->err_headers_out->add('Connection' => 'keep-alive');
 	
 	while (1) {
-		my $progress = $redis->get('progress:' . $session_id);
+		my $progress = $redis->get('progress');
 		if ($progress == -1) {
 			print("data: ERROR\n\n");
-			$redis->del('progress:' . $session_id);
+#			$redis->del('progress');
 			exit;
 		}
 		elsif ($progress == 100) {
 			print("data: 100\n\n");			
 			print("data: DONE\n\n");
-			$redis->del('progress:' . $session_id);
+#			$redis->del('progress');
 			exit;
 		}
 		else {
