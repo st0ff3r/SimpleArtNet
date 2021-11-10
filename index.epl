@@ -26,7 +26,7 @@ $r->err_headers_out->add('Set-Cookie' => $cookie);
 		<meta name="viewport" content="width=device-width, initial-scale=1">
 
 		<!-- Bootstrap CSS -->
-		<link href="/bootstrap.min.css" rel="stylesheet" integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous">
+		<link href="bootstrap.min.css" rel="stylesheet" integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous">
 		<title>Drag & Drop Upload movie file to LED controller</title>
 	</head>
 	<body>
@@ -135,25 +135,25 @@ _('drag_drop').ondrop = function(event)
 	{
 		_('progress_bar').style.display = 'block';
 		var ajax_request = new XMLHttpRequest();
-		ajax_request.open("post", "upload.pl");
+		ajax_request.open("post", "upload");
 
 		ajax_request.addEventListener('load', function(event) {
-			_('uploaded_image').innerHTML = '';
-			_('drag_drop').style.borderColor = '#ccc';
-			var unique = Date.now();
-			_('slitscan').src = 'images/slitscan.png?' + unique;
-		});
-		
-		source = new EventSource('progress.pl');
-		source.addEventListener('message', function(event) {
-			var percent_completed = Math.round(event.data);
-			if (isNaN(percent_completed) == false) {
-				_('progress_bar_process').style.width = percent_completed + '%';
-				_('progress_bar_process').innerHTML = percent_completed + '%';
+			if (ajax_request.status < 400) {
+//				console.log(event);
+				_('uploaded_image').innerHTML = '';
+				_('drag_drop').style.borderColor = '#ccc';
+				
+//				source.close();
+//				_('progress_bar').style.display = 'none';
+//				_('progress_bar_process').style.width = 0.0 + '%';
+//				_('progress_bar_process').innerHTML = '';
+	
+//				var unique = Date.now();
+//				_('slitscan').src = 'images/slitscan.png?' + unique;
 			}
-			if (event.data == "RUNNING") {
-				source.close();
-				_('progress_bar').style.display = 'none';
+			else {
+//				source.close();
+//				_('progress_bar').style.display = 'none';
 				_('uploaded_image').style.display = 'block';
 				_('uploaded_image').innerHTML = '<div class="alert alert-danger"><b>allready running</div>';
 				_('drag_drop').style.borderColor = '#ccc';
@@ -163,8 +163,17 @@ _('drag_drop').ondrop = function(event)
 					_('uploaded_image').innerHTML = '';
 				}, 3000);
 			}
-			else 
-			if (event.data == "DONE") {
+		});
+		
+		source = new EventSource('progress');
+		source.addEventListener('message', function(event) {
+			console.log(event.data);
+			var percent_completed = Math.round(event.data);
+			if (isNaN(percent_completed) == false) {
+				_('progress_bar_process').style.width = percent_completed + '%';
+				_('progress_bar_process').innerHTML = percent_completed + '%';
+			}
+			else if (event.data == "DONE") {
 				source.close();
 				_('progress_bar').style.display = 'none';
 				_('progress_bar_process').style.width = 0.0 + '%';
@@ -187,7 +196,7 @@ _('drag_drop').ondrop = function(event)
 					_('uploaded_image').innerHTML = '';
 				}, 3000);
 			}
-		}, false);
+		}, false);		
 
 		ajax_request.send(form_data);
 	}

@@ -76,6 +76,9 @@ COPY ./artnet.conf /led_controller/
 
 COPY ./LedController.pm /led_controller/
 COPY ./LedController/Artnet.pm /led_controller/LedController/
+COPY ./LedController/Session.pm /led_controller/LedController/
+COPY ./LedController/Upload.pm /led_controller/LedController/
+COPY ./LedController/Progress.pm /led_controller/LedController/
 COPY ./artnetd.pl /led_controller/
 COPY ./send_artnet_data.pl /led_controller/
 COPY ./movie_to_artnet.pl /led_controller/
@@ -86,8 +89,6 @@ COPY ./test.mov /led_controller/
 COPY ./000-default.conf /etc/apache2/sites-available/
 COPY ./startup.pl /etc/apache2/perl/
 COPY ./index.epl /var/www/led_controller/
-COPY ./upload.pl /var/www/led_controller/
-COPY ./progress.pl /var/www/led_controller/
 COPY ./bootstrap.min.css /var/www/led_controller/
 COPY ./bootstrap.min.css.map /var/www/led_controller/
 

@@ -171,7 +171,7 @@ sub set_session_id {
 	
 	if ($self->{redis}->keys('progress:*')) {
 		# a session is allready running
-		$self->{redis}->set('progress:' . $self->{session_id}, '-2');
+#		$self->{redis}->set('progress:' . $self->{session_id}, '-2');
 		return 0;
 	}
 	else {
