@@ -1,2 +1,4 @@
 .git
 persistent_data
+*.mov
+!test.mov

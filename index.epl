@@ -137,6 +137,9 @@ _('drag_drop').ondrop = function(event)
 		var ajax_request = new XMLHttpRequest();
 		ajax_request.open("post", "upload");
 
+		ajax_request.addEventListener('error', function(event) {
+			console.log("An error occurred while attempting to connect. " + event.data);
+		});
 		ajax_request.addEventListener('load', function(event) {
 			if (ajax_request.status < 400) {
 //				console.log(event);
@@ -171,6 +174,9 @@ _('drag_drop').ondrop = function(event)
 //		});
 		
 		source = new EventSource('progress');
+		source.addEventListener('error', function(event) {
+			console.log("An error occurred while attempting to connect. " + event.data);
+		});
 		source.addEventListener('message', function(event) {
 			console.log(event.data);
 			var percent_completed = Math.round(event.data);
