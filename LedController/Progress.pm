@@ -1,5 +1,6 @@
 package LedController::Progress;
 
+use strict;
 use IPC::ShareLite;
 use Apache2::RequestRec;
 use Apache2::RequestIO;
@@ -59,7 +60,7 @@ sub handler {
 			}
 		}
 		$r->rflush;
-		$last_progres = $progress;
+		$last_progress = $progress;
 	}
 }
 
