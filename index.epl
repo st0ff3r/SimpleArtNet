@@ -139,6 +139,10 @@ _('drag_drop').ondrop = function(event)
 
 		ajax_request.addEventListener('error', function(event) {
 			console.log("An error occurred while attempting to connect. " + event.data);
+			_('progress_bar').style.display = 'none';
+			_('progress_bar_process').style.width = 0.0 + '%';
+			_('progress_bar_process').innerHTML = '';
+			_('drag_drop').style.borderColor = '#ccc';
 		});
 		ajax_request.addEventListener('load', function(event) {
 			if (ajax_request.status < 400) {
@@ -176,6 +180,10 @@ _('drag_drop').ondrop = function(event)
 		source = new EventSource('progress');
 		source.addEventListener('error', function(event) {
 			console.log("An error occurred while attempting to connect. " + event.data);
+			_('progress_bar').style.display = 'none';
+			_('progress_bar_process').style.width = 0.0 + '%';
+			_('progress_bar_process').innerHTML = '';
+			_('drag_drop').style.borderColor = '#ccc';
 		});
 		source.addEventListener('message', function(event) {
 			console.log(event.data);
