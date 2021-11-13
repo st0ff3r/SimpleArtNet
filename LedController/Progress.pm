@@ -41,7 +41,7 @@ sub handler {
 	
 	my ($progress, $last_progress);
 	while (1) {
-		$progress = $redis->get('progress');
+		$progress = int($redis->get('progress'));
 		if ($progress == -1) {
 			print("data: ERROR\n\n");
 #			$redis->del('progress');
@@ -55,7 +55,7 @@ sub handler {
 		}
 		else {
 			if ($progress != $last_progress) {
-				print("data: " . int($progress) . "\n\n");
+				print("data: " . $progress . "\n\n");
 			}
 		}
 		$r->rflush;
