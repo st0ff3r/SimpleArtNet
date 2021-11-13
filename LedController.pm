@@ -170,6 +170,7 @@ sub movie_to_slitscan {
 	close($fh);
 	move($temp_file, $p{slitscan_file}) || die $!;
 	$self->{redis}->set('progress', '100.0');
+	sleep 2;	# ugly hack to make sse progress have some time
 }
 
 sub set_session_id {
