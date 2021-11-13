@@ -39,8 +39,9 @@ sub handler {
 	$r->err_headers_out->add('Cache-Control' => 'no-cache');
 	$r->err_headers_out->add('Connection' => 'keep-alive');
 	
+	my ($progress, $last_progress);
 	while (1) {
-		my $progress = $redis->get('progress');
+		$progress = $redis->get('progress');
 		if ($progress == -1) {
 			print("data: ERROR\n\n");
 #			$redis->del('progress');
@@ -53,9 +54,12 @@ sub handler {
 			exit;
 		}
 		else {
-			print("data: " . int($progress) . "\n\n");
+			if ($progress != $last_progress) {
+				print("data: " . int($progress) . "\n\n");
+			}
 		}
 		$r->rflush;
+		$last_progres = $progress;
 	}
 }
 
