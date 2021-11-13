@@ -40,7 +40,8 @@ sub handler {
 	$r->err_headers_out->add('Cache-Control' => 'no-cache');
 	$r->err_headers_out->add('Connection' => 'keep-alive');
 	
-	my ($progress, $last_progress);
+	my $progress;
+	my $last_progress = undef;
 	while (1) {
 		$progress = int($redis->get('progress'));
 		if ($progress == -1) {
@@ -55,7 +56,7 @@ sub handler {
 			exit;
 		}
 		else {
-			if ($progress != $last_progress) {
+			if ($progress ne $last_progress) {
 				print("data: " . $progress . "\n\n");
 			}
 		}
