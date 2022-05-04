@@ -35,7 +35,8 @@ my $artnet = new LedController::Artnet(
 	pixel_format => $config->param('pixel_format') || 'GRBW',
 	num_channels_per_pixel => $config->param('num_channels_per_pixel') || 4,
 	num_pixels => $config->param('num_pixels') || 300,
-	universes_per_port => $config->param('universes_per_port') || 3
+	universes_per_port => $config->param('universes_per_port') || 3,
+	is_mirrored_on_second_port => $config->param('is_mirrored_on_second_port')
 );
 
 $SIG{USR1} = sub { $intensity = $share_intensity->fetch };
