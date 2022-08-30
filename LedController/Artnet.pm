@@ -81,7 +81,7 @@ sub set_pixel {
 		
 	# do gamma correction
 	$red = gamma_correction($red);
-	$green = gamma_correction($green);
+	$green = gamma_correction($green) * 0.7;	# hack to compensate for too much green
 	$blue = gamma_correction($blue);
 	
 	if ($self->{num_channels_per_pixel} == 4) {
