@@ -79,10 +79,10 @@ sub set_pixel {
 	my $blue = $p{blue};
 	my $white = 0;
 		
-	# do gamma correction
-	$red = gamma_correction($red);
-	$green = gamma_correction($green) * 0.7;	# hack to compensate for too much green
-	$blue = gamma_correction($blue);
+	# do gamma correction and color correction
+	$red = gamma_correction($red) * 1.0;
+	$green = gamma_correction($green) * 0.63;
+	$blue = gamma_correction($blue) * 0.94;
 	
 	if ($self->{num_channels_per_pixel} == 4) {
 		# convert from rgb to rgbw
