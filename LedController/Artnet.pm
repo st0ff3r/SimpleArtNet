@@ -43,6 +43,8 @@ sub new {
 	$self->{pixel_format} = $p{pixel_format};
 	$self->{num_pixels} = $p{num_pixels};
 	$self->{universes_per_port} = $p{universes_per_port};
+	$self->{is_mirrored_on_first_port} = $p{is_mirrored_on_first_port};
+	$self->{is_mirrored_on_second_port} = $p{is_mirrored_on_second_port};
 
 	my $redis_host = REDIS_HOST;
 	my $redis_port = REDIS_PORT;
@@ -129,12 +131,24 @@ sub send_artnet {
 	my $packet;
 	my $frame;
 	
-	$frame = [];
-	for (1..$self->{num_universes}) {
-		$packet = "Art-Net\x00\x00\x50\x00\x0e\x00\x00" . chr($_ - 1) . "\x00" . chr(2) . chr(0) . $self->{dmx_channels}[$_ - 1];
-		push @$frame, $packet;
+	# send mirrored data to first port
+	if ($self->{is_mirrored_on_first_port}) {
+		$frame = [];
+		for (1..$self->{num_universes}) {
+			$packet = "Art-Net\x00\x00\x50\x00\x0e\x00\x00" . chr($_ - 1) . "\x00" . chr(2) . chr(0) . $self->{dmx_channels_mirrored}[$_ - 1];
+			push @$frame, $packet;
+		}
+		$self->add_artnet_to_queue(queue => REDIS_QUEUE_1_NAME, artnet => freeze($frame), fps => $p{fps});
 	}
-	$self->add_artnet_to_queue(queue => REDIS_QUEUE_1_NAME, artnet => freeze($frame), fps => $p{fps});
+	else {
+		# not mirrored on first port
+		$frame = [];
+		for (1..$self->{num_universes}) {
+			$packet = "Art-Net\x00\x00\x50\x00\x0e\x00\x00" . chr($_ - 1) . "\x00" . chr(2) . chr(0) . $self->{dmx_channels}[$_ - 1];
+			push @$frame, $packet;
+		}
+		$self->add_artnet_to_queue(queue => REDIS_QUEUE_1_NAME, artnet => freeze($frame), fps => $p{fps});	
+	}
 
 	# send mirrored data to other port
 	if ($self->{is_mirrored_on_second_port}) {
