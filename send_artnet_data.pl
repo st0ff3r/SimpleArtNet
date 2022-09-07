@@ -16,6 +16,7 @@ my $artnet_data = '';
 my $new_artnet_data = '';
 
 my $intensity = 0.0;
+my $intensity_artnet = 0.0;
 my $cross_fade_intensity = 0.0;
 my $cross_fade_state = 'fade_in';
 my $fps;
@@ -25,6 +26,12 @@ my $cross_fade_per_step;
 
 my $share_intensity = IPC::ShareLite->new(
 	-key		=> 6454,
+	-create		=> 'yes',
+	-destroy	=> 'yes'
+) or die $!;
+
+my $share_intensity_artnet = IPC::ShareLite->new(
+	-key		=> 6455,
 	-create		=> 'yes',
 	-destroy	=> 'yes'
 ) or die $!;
@@ -40,7 +47,11 @@ my $artnet = new LedController::Artnet(
 	is_mirrored_on_second_port => $config->param('is_mirrored_on_second_port')
 );
 
-$SIG{USR1} = sub { $intensity = $share_intensity->fetch };
+$SIG{USR1} = sub {
+	$intensity = $share_intensity->fetch;
+	$intensity_artnet = $share_intensity_artnet->fetch;
+};
+
 $SIG{USR2} = sub {
 	$cross_fade_state = 'fade_out';
 	
@@ -107,9 +118,9 @@ while (1) {
 		while (($red, $green, $blue) = splice(@pixel_line, 0, 3)) {
 			$artnet->set_pixel(
 				pixel => $i,
-				red => $intensity * hex($red) * $cross_fade_intensity,
-				green => $intensity * hex($green) * $cross_fade_intensity,
-				blue => $intensity * hex($blue) * $cross_fade_intensity
+				red => $intensity_artnet * $intensity * hex($red) * $cross_fade_intensity,
+				green => $intensity_artnet * $intensity * hex($green) * $cross_fade_intensity,
+				blue => $intensity_artnet * $intensity * hex($blue) * $cross_fade_intensity
 			);
 			$i++;
 		}
