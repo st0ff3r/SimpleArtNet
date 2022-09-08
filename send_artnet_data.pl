@@ -28,12 +28,13 @@ my $cross_fade_per_step;
 
 sub print_status {
 	while (1) {
-		print "\
-			intensity: $intensity\n\
-			intensity_artnet: $intensity_artnet\n\
-			cross_fade_intensity: $cross_fade_intensity\n\
-			cross_fade_state: $cross_fade_state\n\
-			fps: $fps\n";
+		print("
+			intensity: $intensity\n
+			intensity_artnet: $intensity_artnet\n
+			cross_fade_intensity: $cross_fade_intensity\n
+			cross_fade_state: $cross_fade_state\n
+			fps: $fps\n\n
+		");
 		usleep(1000_000);
 	}
 }
