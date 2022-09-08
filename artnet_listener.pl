@@ -9,11 +9,14 @@ use Time::HiRes qw(usleep gettimeofday tv_interval);
 #use Storable qw(freeze thaw);
 use IO::Socket::INET;
 use Sys::Hostname;
+use threads;
+use threads::shared;
 use Data::Dumper;
 
 use constant ARTNET_CONF => 'artnet.conf';
 
 my $config = new Config::Simple(ARTNET_CONF);
+my $artnet_listener_timeout = $config->param('artnet_listener_timeout') || 10;
 
 my $socket = new IO::Socket::INET (
 	LocalPort	=> '6454',
@@ -37,11 +40,27 @@ my $opcode;
 my $universe;
 my $dmx;
 
+my $last_received_time :shared = time();
+
 set_intensity(1.0);
+
+sub artnet_watchdog_thread {
+	while (1) {
+		print "$last_received_time\n";
+		if ($last_received_time + $artnet_listener_timeout < time()) {
+			print "ArtNet timeout\n";
+			set_intensity(1.0);
+		}
+		usleep(1000_000);
+	}
+}
+my $thread = threads->create(\&artnet_watchdog_thread);
 
 while (1) {
 	my $recieved_data;
 	$socket->recv($recieved_data, 1024);
+	$last_received_time = time();
+
 	$opcode_l = vec($recieved_data, 8, 8);
 	$opcode_h = vec($recieved_data, 9, 8);
 	
@@ -64,8 +83,8 @@ while (1) {
 	if ($opcode == 0x5000) {	# ArtNet packet
 		if ($length <= 512) {	# sanity check
 			if ($universe == $config->param('my_universe')) {
-#				printf("opcode: %0x\n", $opcode);
 				$dmx = vec($recieved_data, 18, 8);
+#				printf("dmx: %0x\n", $dmx);
 				set_intensity($dmx / 255);
 #				for (0..$length) {
 #					$dmx = vec($recieved_data, 18 + $_, 8);
@@ -103,8 +122,7 @@ while (1) {
 #	print "\n\n";
 }
 $socket->close();
-
-
+$thread->join();
 
 sub set_intensity {
 	my $intensity = shift;
