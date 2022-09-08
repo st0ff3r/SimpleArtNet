@@ -37,6 +37,8 @@ my $length;
 my $opcode;
 my $dmx;
 
+set_intensity(1.0);
+
 while (1) {
 	my $recieved_data;
 	$socket->recv($recieved_data, 1024);
