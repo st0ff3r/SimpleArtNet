@@ -58,17 +58,20 @@ while (1) {
 
 	$opcode = $opcode_h << 8 + $opcode_l;
 	$length = $length_h << 8 + $length_l;
+	$universe = $universe_h << 8 + $universe_l;
 
 	if ($opcode == 0x5000) {	# ArtNet packet
 		if ($length <= 512) {	# sanity check
-#			printf("opcode: %0x\n", $opcode);
-			$dmx = vec($recieved_data, 18, 8);
-			set_intensity($dmx / 255);
-#			for (0..$length) {
-#				$dmx = vec($recieved_data, 18 + $_, 8);
-#				printf("0x%x ", $dmx);
-#			}
-#			print "\n\n";
+			if ($universe == $config->param('my_universe')) {
+#				printf("opcode: %0x\n", $opcode);
+				$dmx = vec($recieved_data, 18, 8);
+				set_intensity($dmx / 255);
+#				for (0..$length) {
+#					$dmx = vec($recieved_data, 18 + $_, 8);
+#					printf("0x%x ", $dmx);
+#				}
+#				print "\n\n";
+			}
 		}
 	}
 	elsif ($opcode == 0x2000) {	# ArtPoll packet
