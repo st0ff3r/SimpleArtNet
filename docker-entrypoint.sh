@@ -21,6 +21,8 @@ terminate() {
 trap terminate SIGTERM
 
 ./sun_tracker.pl &
+./artnet_listener.pl &
+
 sleep 5;
 
 sudo -u www-data ./send_artnet_data.pl &
@@ -28,8 +30,6 @@ sudo_send_artnet_data_pid=$!
 
 sudo -u www-data ./artnetd.pl &
 sudo_artnetd_pid=$!
-
-./artnet_listener.pl
 
 wait "$sudo_send_artnet_data_pid"
 wait "$sudo_artnetd_pid"
