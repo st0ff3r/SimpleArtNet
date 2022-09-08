@@ -101,7 +101,6 @@ while (1) {
 		$socket_reply->close();
 	}
 #	print "\n\n";
-	usleep(10_000);
 }
 $socket->close();
 
