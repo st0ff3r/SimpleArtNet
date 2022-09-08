@@ -2,8 +2,7 @@
 
 use strict;
 use Config::Simple;
-use IPC::ShareLite;
-use Proc::Killall;
+#use IPC::ShareLite;
 use Time::HiRes qw(usleep gettimeofday tv_interval);
 #use Redis;
 #use Storable qw(freeze thaw);
@@ -57,17 +56,13 @@ while (1) {
 
 	$opcode = $opcode_h << 8 + $opcode_l;
 	$length = $length_h << 8 + $length_l;
-
 	if ($opcode == 0x5000) {	# ArtNet packet
 		if ($length <= 512) {	# sanity check
 #			printf("opcode: %0x\n", $opcode);
-			$dmx = vec($recieved_data, 18, 8);
-			set_intensity(int($dmx / 255));
-#			for (0..$length) {
-#				$dmx = vec($recieved_data, 18 + $_, 8);
+			for (0..$length) {
+				$dmx = vec($recieved_data, 18 + $_, 8);
 #				printf("0x%x ", $dmx);
-#			}
-#			print "\n\n";
+			}
 		}
 	}
 	elsif ($opcode == 0x2000) {	# ArtPoll packet
@@ -96,8 +91,8 @@ while (1) {
 		$socket_reply->close();
 	}
 #	print "\n\n";
-	usleep(10_000);
 }
+
 $socket->close();
 
 
