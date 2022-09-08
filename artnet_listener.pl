@@ -16,7 +16,6 @@ use constant ARTNET_CONF => 'artnet.conf';
 my $config = new Config::Simple(ARTNET_CONF);
 
 my $socket = new IO::Socket::INET (
-	LocalAddr	=> '127.255.255.255',
 	LocalPort	=> '6454',
 	Proto		=> 'udp'
 ) || die "ERROR in socket creation : $!\n";
@@ -64,7 +63,7 @@ while (1) {
 		if ($length <= 512) {	# sanity check
 #			printf("opcode: %0x\n", $opcode);
 			$dmx = vec($recieved_data, 18, 8);
-			set_intensity(int($dmx / 255));
+			set_intensity($dmx / 255);
 #			for (0..$length) {
 #				$dmx = vec($recieved_data, 18 + $_, 8);
 #				printf("0x%x ", $dmx);

@@ -15,7 +15,6 @@ use constant ARTNET_CONF => 'artnet.conf';
 my $config = new Config::Simple(ARTNET_CONF);
 
 my $socket = new IO::Socket::INET (
-	LocalAddr	=> '10.0.1.255',
 	LocalPort	=> '6454',
 	Proto		=> 'udp'
 ) || die "ERROR in socket creation : $!\n";
