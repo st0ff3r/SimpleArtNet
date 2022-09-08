@@ -21,9 +21,9 @@ terminate() {
 trap terminate SIGTERM
 
 ./sun_tracker.pl &
-sleep 5;
 
 ./artnet_listener.pl &
+
 sleep 5;
 
 sudo -u www-data ./send_artnet_data.pl &
