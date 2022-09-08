@@ -46,7 +46,7 @@ set_intensity(1.0);
 
 sub artnet_watchdog_thread {
 	while (1) {
-		print "$last_received_time\n";
+#		print "$last_received_time\n";
 		if ($last_received_time + $artnet_listener_timeout < time()) {
 			print "ArtNet timeout\n";
 			set_intensity(1.0);
