@@ -109,9 +109,9 @@ while (1) {
 			"\x00" .
 			"\xf0" .
 			"\xff\xff" .
-			"Trappe LED" . "        " .
-			"Trappe LED" . "                                                      " .
-			" " x 64 .
+			"Trappe LED" . "\x00" x 8 .
+			"Trappe LED" . "\x00" x 54 .
+			"\x00" x 64 .
 			"\x00\x01" .
 			"\x80\x80\x80\x80" .
 			"\x00" x 35;

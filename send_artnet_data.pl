@@ -24,6 +24,18 @@ my $fps ;
 my $cross_fade_time = $config->param('cross_fade_time') || 2;
 my $cross_fade_per_step;
 
+#sub print_status {
+#	while (1) {
+#		print("intensity: $intensity\n");
+#		print("intensity_artnet: $intensity_artnet\n");
+#		print("cross_fade_intensity: $cross_fade_intensity\n");
+#		print("cross_fade_state: $cross_fade_state\n");
+#		print("fps: $fps\n\n");
+#		usleep(1000_000);
+#	}
+#}
+#my $thread = threads->create(\&print_status);
+
 my $share_intensity = IPC::ShareLite->new(
 	-key		=> 6454,
 	-create		=> 'yes',
