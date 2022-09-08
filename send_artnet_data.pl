@@ -3,6 +3,8 @@
 use Time::HiRes qw(usleep gettimeofday tv_interval);
 use Config::Simple;
 use IPC::ShareLite;
+use threads;
+use threads::shared;
 use Data::Dumper;
 
 use lib qw ( ./ );
@@ -15,14 +17,27 @@ my $artnet_data_file = $ARGV[0] || "data/artnet.data";
 my $artnet_data = '';
 my $new_artnet_data = '';
 
-my $intensity = 0.0;
-my $intensity_artnet = 0.0;
-my $cross_fade_intensity = 0.0;
-my $cross_fade_state = 'fade_in';
-my $fps;
+my $intensity :shared = 0.0;
+my $intensity_artnet :shared = 0.0;
+my $cross_fade_intensity :shared = 0.0;
+my $cross_fade_state :shared = 'fade_in';
+my $fps :shared ;
 
 my $cross_fade_time = $config->param('cross_fade_time') || 2;
 my $cross_fade_per_step;
+
+sub print_status {
+	while (1) {
+		print "\
+			intensity: $intensity\n\
+			intensity_artnet: $intensity_artnet\n\
+			cross_fade_intensity: $cross_fade_intensity\n\
+			cross_fade_state: $cross_fade_state\n\
+			fps: $fps\n";
+		usleep(1000_000);
+	}
+}
+my $thread = threads->create(\&print_status);
 
 my $share_intensity = IPC::ShareLite->new(
 	-key		=> 6454,
