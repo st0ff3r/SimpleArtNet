@@ -34,6 +34,7 @@ my (
 );
 my $length;
 my $opcode;
+my $universe;
 my $dmx;
 
 set_intensity(1.0);
